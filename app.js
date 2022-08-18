@@ -24,45 +24,37 @@ const categories = [
     priority: 2,
     keywords: [
       'key',
-      'keys'
+      'keys',
+      'lockbox',
+      'lock box',
     ]
   },
   {
     category: 'SALES',
     priority: 3,
     keywords: [
+      'entry point',
+      'entry points',
       'recommend',
       'recommended',
-      'recommendation'
+      'recommendation',
+      'need',
+      'needs'
     ]
   }
 ]
 
 const keywords = categories.flatMap(c => c.keywords)
-// console.log(`---\nLooking for keywords: ${keywords.join(', ')}`);
 
-const matchingNotes = [];
-const keywordsFound = [];
-
+let notesHighlighted = 0;
 for (const note of notes) {
-  // Get a full view of all matching keywords, if any
-  for (const keyword of keywords) {
-    const regex = new RegExp(keyword, 'gi');
-    if (note.match(regex)) {
-      keywordsFound.push(keyword);
-      // Replace matching keyword with <<highlight>>. To be categorized, ordered and limited to single, highest priority keyword
-      matchingNotes.push(note.replaceAll(keyword, `<<${keyword}>>`));
-    }
+  const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
+  const highlighted = note.replace(pattern, match => `=>${match}<=`);
+  if (note.indexOf(highlighted)) {
+    console.log(highlighted + `\n`);
+    notesHighlighted++;
   }
-
-  /*
-  if (keywordsFound.length > 0) {
-    // replace each note keyword with <<keyword>>
-    console.log(note.replaceAll(keyword, `<<${keyword}>>`));
-  }
-  */
 }
+console.log(`Highlighted ${notesHighlighted} of ${notes.length}`);
 
-console.log(matchingNotes.join(`\n\n`));
-console.log(`Found ${matchingNotes.length} of ${notes.length} notes with matching keywords.`);
-// console.log(`Keywords found (${keywordsFound.length}): ${keywordsFound.join(', ')}`);
+// TODO: Organize into categories and prioritize highest, ending with one
