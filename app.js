@@ -1,9 +1,9 @@
-const notes = require('./notes.json');
+let notes = require('./notes.json');
 
 const categories = [
   {
-    category: 'SERVICE',
-    priority: 1, // == highest
+    name: 'SERVICE',
+    priority: 1, // 1 == highest
     keywords: [
       'heavy',
       'sanitation',
@@ -17,20 +17,22 @@ const categories = [
       'advise',
       'advice',
       'infestation'
-    ]
+    ],
+    notes: []
   },
   {
-    category: 'KEY',
+    name: 'KEY',
     priority: 2,
     keywords: [
       'key',
       'keys',
       'lockbox',
       'lock box',
-    ]
+    ],
+    notes: []
   },
   {
-    category: 'SALES',
+    name: 'SALES',
     priority: 3,
     keywords: [
       'entry point',
@@ -40,21 +42,34 @@ const categories = [
       'recommendation',
       'need',
       'needs'
-    ]
+    ],
+    notes: []
   }
 ]
 
 const keywords = categories.flatMap(c => c.keywords)
+const groups = []
 
-let notesHighlighted = 0;
+let numHighlighted = 0;
+
 for (const note of notes) {
+  // Highlight keywords in notes
   const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
-  const highlighted = note.replace(pattern, match => `=>${match}<=`);
-  if (note.indexOf(highlighted)) {
-    console.log(highlighted + `\n`);
-    notesHighlighted++;
+  const noteHighlighted = note.replace(pattern, match => `=>${match}<=`);
+  if (note.indexOf(noteHighlighted)) {
+    // console.log(noteHighlighted + `\n`);
+    numHighlighted++;
+  }
+  // console.log(`Highlighted ${numHighlighted} of ${notes.length}`);
+
+  // Organize into groups
+  for (const category of categories) {
+    for (const keyword of category.keywords) {
+      if (noteHighlighted.includes(keyword)) {
+        category.notes.push(noteHighlighted)
+      }
+    }
   }
 }
-console.log(`Highlighted ${notesHighlighted} of ${notes.length}`);
 
-// TODO: Organize into categories and prioritize highest, ending with one
+console.log(JSON.stringify(categories));
