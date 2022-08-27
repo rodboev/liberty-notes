@@ -1,0 +1,7 @@
+pre {
+  white-space: pre-wrap;
+  font: 0.85rem sans-serif;
+}
+.highlight {
+  background-color: yellow;
+}

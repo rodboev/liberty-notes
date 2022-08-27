@@ -1,4 +1,10 @@
+let fs = require('fs');
+
 let notes = require('./notes.json');
+
+const express = require('express')
+const app = express()
+const port = 3000
 
 const categories = [
   {
@@ -50,26 +56,57 @@ const categories = [
 const keywords = categories.flatMap(c => c.keywords)
 const groups = []
 
-let numHighlighted = 0;
+// let numHighlighted = 0;
 
 for (const note of notes) {
   // Highlight keywords in notes
   const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
-  const noteHighlighted = note.replace(pattern, match => `=>${match}<=`);
-  if (note.indexOf(noteHighlighted)) {
-    // console.log(noteHighlighted + `\n`);
+  const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`);
+  /*
+  if (note.indexOf(highlightedNote)) {
+    console.log(highlightedNote + `\n`);
     numHighlighted++;
   }
-  // console.log(`Highlighted ${numHighlighted} of ${notes.length}`);
+  console.log(`Highlighted ${numHighlighted} of ${notes.length}`);
+  */
 
   // Organize into groups
   for (const category of categories) {
     for (const keyword of category.keywords) {
-      if (noteHighlighted.includes(keyword)) {
-        category.notes.push(noteHighlighted)
+      const pattern = new RegExp('\\b' + keyword + '\\b', 'gi'); 
+      if (pattern.test(highlightedNote)) {
+        category.notes.push(highlightedNote)
+        break // TODO: Check for keyword priority
       }
     }
   }
 }
 
-console.log(JSON.stringify(categories));
+// console.log(JSON.stringify(categories, null, 2));
+// console.dir(categories)
+const outputFilename = 'output.json';
+fs.writeFile(outputFilename, JSON.stringify(categories, null, 2), function(err) {
+  if(err) {
+    console.log(err);
+  } else {
+    // console.log("JSON saved to " + outputFilename);
+    app.get('/', (req, res) => {
+      res.send('<link rel="stylesheet" href="style.css" /><pre>' + JSON.stringify(categories, null, 4) + '</pre>')
+      /*
+      res.send('<link rel="stylesheet" href="style.css" /><pre>');
+      res.sendFile(__dirname + '/output.json');
+      res.send('</pre>');
+      */
+    })
+
+    app.get('/style.css', (req, res) => {
+      res.sendFile(__dirname + '/style.css');
+    })
+
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`)
+    })    
+  }
+}); 
+
+// console.log('This completes before JSON is written.')
