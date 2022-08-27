@@ -92,6 +92,7 @@ fs.writeFile(outputFilename, JSON.stringify(categories, null, 2), function(err) 
     // console.log("JSON saved to " + outputFilename);
     app.get('/', (req, res) => {
       let response = `<link rel="stylesheet" href="style.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <p>Categories with highlights (raw JSON to be formatted later):<pre>
 ${JSON.stringify(categories, null, 4)}
         </pre></p>
