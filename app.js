@@ -91,7 +91,15 @@ fs.writeFile(outputFilename, JSON.stringify(categories, null, 2), function(err) 
   } else {
     // console.log("JSON saved to " + outputFilename);
     app.get('/', (req, res) => {
-      res.send('<link rel="stylesheet" href="style.css" /><pre>' + JSON.stringify(categories, null, 4) + '</pre>')
+      let response = `<link rel="stylesheet" href="style.css" />
+        <p>Categories with highlights (raw JSON to be formatted later):<pre>
+${JSON.stringify(categories, null, 4)}
+        </pre></p>
+        <hr>
+        <p>Original notes (first 100 from sheet):<pre>
+${JSON.stringify(notes, null, 4)}
+        </pre></p>`
+      res.send(response)
       /*
       res.send('<link rel="stylesheet" href="style.css" /><pre>');
       res.sendFile(__dirname + '/output.json');

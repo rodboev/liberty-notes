@@ -5,8 +5,14 @@
   "repository": "https://github.com/rodboev/liberty-notes",
   "author": "Rod Boev <rod.boev@gmail.com>",
   "license": "MIT",
-  "nodemonConfig": { "ext": "js", "ignore": ["*.json"], "delay": "2" },
-  "scripts": { "start": "nodemon" },
+  "nodemonConfig": {
+    "ignore": ["*.json"]
+  },
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "express": "^4.18.1"
   }
