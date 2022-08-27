@@ -4,7 +4,7 @@ let notes = require('./notes.json');
 
 const express = require('express')
 const app = express()
-const port = 3000
+const port = parseInt(process.env.PORT, 10) || 3000;
 
 const categories = [
   {
