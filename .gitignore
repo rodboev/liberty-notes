@@ -105,7 +105,3 @@ dist
 
 # Excel data
 *.xlsx
-
-# Notes
-*.csv
-*.json
