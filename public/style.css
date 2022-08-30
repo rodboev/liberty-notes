@@ -61,13 +61,17 @@ img.header {
 }
 @media (max-width: 480px) {
 	img.header {
+		/*
 		width: 110%;
 		margin: 0 -5% -7.5%;
+		*/
+		width: 50%;
+		margin: 0.75rem 0 -1rem;
 	}
 }
 .highlight {
-	background-color: yellow;
-	padding: 0 0.2rem;
+	background-color: rgb(255, 255, 168);
+	padding: 0 0.2rem 0.1rem;
 	margin: 0 -0.2rem;
 }
 
