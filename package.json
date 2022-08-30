@@ -6,7 +6,7 @@
   "author": "Rod Boev <rod.boev@gmail.com>",
   "license": "MIT",
   "nodemonConfig": {
-    "ignore": ["*.json"]
+    "ignore": ["*.json", "public/*"]
   },
   "scripts": {
     "start": "node app",

@@ -104,8 +104,8 @@ dist
 .tern-port
 
 # Excel data
-.xlsx
+*.xlsx
 
 # Notes
-.csv
-.json
+*.csv
+*.json
