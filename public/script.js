@@ -47,13 +47,13 @@ const categories = [
   }
 ]
 
-const numberNotes = (notes) => {
-	const numberedNotes = [];
+const prefixNotes = (notes) => {
+	const prefixedNotes = [];
 	for (let [i, note] of notes.entries()) {
-		note = `${i + 1}. ${note}`
-		numberedNotes.push(note);
+		note = `<span class="num">${i + 1}.</span> ${note.replace(/^Service: /, "")}`
+		prefixedNotes.push(note);
 	}
-	return numberedNotes
+	return prefixedNotes
 }
 
 const groupNotes = (notes) => {
@@ -95,11 +95,10 @@ const displayNotes = (notes) => {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-	console.log('DOM fully loaded and parsed');
 	const content = document.querySelector('.content');
 	const notes = await fetchNotes();
-	const numberedNotes = numberNotes(notes);
-	const groupedNotes = groupNotes(numberedNotes);
+	const prefixedNotes = prefixNotes(notes);
+	const groupedNotes = groupNotes(prefixedNotes);
 	content.innerHTML = displayNotes(groupedNotes);
 });
 
