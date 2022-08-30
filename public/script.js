@@ -44,7 +44,12 @@ const categories = [
       'needs'
     ],
     notes: []
-  }
+  },
+	{
+		name: 'UNCATEGORIZED',
+		keywords: [],
+		notes: []
+	}
 ]
 
 const prefixNotes = (notes) => {
@@ -63,7 +68,12 @@ const groupNotes = (notes) => {
 		// Highlight keywords in notes
 		const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
 		const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`);
-	
+		
+		// If no highlights, push to last category
+		if (!note.indexOf(highlightedNote)) {
+			categories[categories.length-1].notes.push(note);
+		}
+		
 		// Organize into groups
 		for (const category of categories) {
 			for (const keyword of category.keywords) {
