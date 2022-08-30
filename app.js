@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 const express = require('express')
-const encoding = require('encoding')
+const iconv = require('iconv-lite')
 
 const app = express()
 const port = parseInt(process.env.PORT) || 3000
@@ -13,7 +13,9 @@ app.get('/notes.json', (req, res) => {
       console.error(err)
       return
     }
-    res.send(encoding.convert(data, 'windows-1252', 'utf-8'))
+
+    buf = iconv.encode(data, 'win1252')
+    res.send(iconv.decode(buf, 'utf8'))
   })
 })
 
