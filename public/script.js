@@ -61,59 +61,12 @@ const prefixNotes = (notes) => {
 	return prefixedNotes
 }
 
-const cleanNotes = (notes) => {
-	let cleanedNotes = [];
-	let cleanedWords = [];
-
-	for (let note of notes) {
-		let words = note.join(' ').split(/\s+/)
-			.filter(w => w.length > 4 && !/[<>/]/.test(w))
-		words = words.filter((v, i) => words.indexOf(v) === i) // remove dupes
-		for (let word of words) {
-			word = word.replace(/([:&.])/g, "$1 ")
-			cleanedWords.push(word);
-		}
-		console.log(cleanedWords);
-	}
-
-	for (let note in notes) {
-		if (note.indexOf(word) !== -1) {
-			note = note.replace(/[\W_]|([a-z])(?=[A-Z])/g, "$1 ")
-				.replace(/[\W_]|([A-Z])(?=[a-z])/g, "$1 ")
-				.replace(/([A-Z].*)([A-Z].*)/g, "$1 $2 ")
-		}
-		cleanedNotes.push(note)
-	}
-	console.log(cleanedNotes)
-	return cleanedNotes
-}
-
 const groupNotes = (notes) => {
-	let keywords = categories.flatMap(c => c.keywords)
-	/*
-	
-	console.log(words)
-	*/
-
-	// Highlight keywords in notes
-	const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
-
-	// Match misspellings
-	let i = 0;
-	for (const keyword of keywords) {
-		if (i < 100) {
-			for (const note of notes) {
-				for (const word of note.split(/\s+/)) {
-					if (stringSimilarity.compareTwoStrings(word, keyword) > 0.8) {
-						keywords.push(word)
-					}
-				}
-			}
-		}
-		i++;
-	}
+	const keywords = categories.flatMap(c => c.keywords)
 
 	for (const note of notes) {
+		// Highlight keywords in notes
+		const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
 		const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`);
 		
 		// If no highlights, push to last category
@@ -134,7 +87,7 @@ const groupNotes = (notes) => {
 	}
 }
 
-const fetchNotes = async (json = '/notes.json') => {
+const fetchNotes = async (json = 'notes.json') => {
 	const response = await fetch(json);
 	const notes = await response.json();
 	return notes;
@@ -154,8 +107,8 @@ const displayNotes = (notes) => {
 window.addEventListener('DOMContentLoaded', async () => {
 	const content = document.querySelector('.content');
 	const notes = await fetchNotes();
-	// const cleanedNotes = cleanNotes(notes);
 	const prefixedNotes = prefixNotes(notes);
 	const groupedNotes = groupNotes(prefixedNotes);
 	content.innerHTML = displayNotes(groupedNotes);
 });
+

@@ -17,25 +17,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "dictionary-en": "^3.2.0",
     "express": "^4.18.1",
-    "iconv-lite": "^0.6.3",
-    "remark-autofix": "^0.6.1",
-    "retext": "^8.1.0",
-    "retext-contractions": "^5.2.0",
-    "retext-diacritics": "^4.2.0",
-    "retext-english": "^4.1.0",
-    "retext-indefinite-article": "^4.1.0",
-    "retext-repeated-words": "^4.2.0",
-    "retext-sentence-spacing": "^5.2.0",
-    "retext-spell": "^5.3.0",
-    "retext-stringify": "^3.1.0",
-    "shoetest": "^1.2.1",
-    "string-similarity": "^4.0.4",
-    "to-vfile": "^7.2.3",
-    "unified": "^10.1.2",
-    "vfile": "^5.3.4",
-    "vfile-reporter": "^7.0.4"
-  },
-  "type": "module"
+    "iconv-lite": "^0.6.3"
+  }
 }
