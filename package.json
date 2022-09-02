@@ -1,6 +1,6 @@
 {
   "name": "liberty-notes",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "app.js",
   "repository": "https://github.com/rodboev/liberty-notes",
   "author": "Rod Boev <rod.boev@gmail.com>",
@@ -8,6 +8,7 @@
   "nodemonConfig": {
     "ignore": [
       "*.json",
+      "*.csv",
       "public/*"
     ]
   },
@@ -17,21 +18,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "dictionary-en": "^3.2.0",
     "express": "^4.18.1",
     "iconv-lite": "^0.6.3",
-    "retext": "^8.1.0",
-    "retext-contractions": "^5.2.0",
-    "retext-diacritics": "^4.2.0",
-    "retext-english": "^4.1.0",
-    "retext-equality": "^6.6.0",
-    "retext-indefinite-article": "^4.1.0",
-    "retext-profanities": "^7.2.1",
-    "retext-repeated-words": "^4.2.0",
-    "retext-spell": "^5.3.0",
+    "leven": "^4.0.0",
     "string-similarity": "^4.0.4",
     "to-vfile": "^7.2.3",
-    "vfile-reporter": "^7.0.4",
     "vfile-reporter-json": "^3.1.0"
   },
   "type": "module"
