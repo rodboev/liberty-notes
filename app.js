@@ -34,22 +34,21 @@ app.get('/notes.json', (req, res) => {
     const decoded = iconv.decode(encoded, 'utf8')
     // const recoded = await read('recoded.json', 'utf8', () => console.log(decoded.toString('utf8')))
 
-    const file = await retext()
+    retext()
       .use(retextEnglish)
-      .use(retextSpell, dictionary)
+      // .use(retextSpell, dictionary)
       .use(retextRepeatedWords)
       .use(retextDiacritics)
       .use(retextIndefiniteArticle)
       .use(retextContractions)
       .use(retextStringify)
       // .use(retextProfanities)
-      .use(retextEquality)
+      // .use(retextEquality)
       .process(decoded)
-
-      console.error(reporter(file))
-      // writeSync('output.json')
-
-      res.send(String(file))
+      .then((file) => {
+        res.send(String(file))
+        console.error(reporter(file))
+      })
   })
 })
 
