@@ -55,7 +55,10 @@ const categories = [
 const prefixNotes = (notes) => {
 	const prefixedNotes = [];
 	for (let [i, note] of notes.entries()) {
-		note = `<span class="num">${i + 1}.</span> ${note.replace(/^Service: /, "")}`
+		note = `<span class="num">${i + 1}.</span>
+			Name: ${note['Name']}<br />
+			Code: ${note['Code']}<br />
+			Note: ${note['Note\r'].replace(/^Service: /, "")}`
 		prefixedNotes.push(note);
 	}
 	return prefixedNotes
@@ -87,7 +90,7 @@ const groupNotes = (notes) => {
 	}
 }
 
-const fetchNotes = async (json = 'notes.json') => {
+const fetchNotes = async (json = '/api/notes.csv') => {
 	const response = await fetch(json);
 	const notes = await response.json();
 	return notes;
