@@ -47,7 +47,7 @@ app.get('/api/:id', (req, res) => {
       data = data.replaceAll("\\n", "<br />");
 
       //if (fileExt === 'csv') {
-        data = await converter.csv2jsonAsync(data, {keys: ['Name', 'Code', 'Note']})
+        data = await converter.csv2jsonAsync(data, {keys: ['Company', 'Location Code', 'Note']})
         data = JSON.stringify(data, null, 2)
       //W}
 
