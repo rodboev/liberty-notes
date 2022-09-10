@@ -1,42 +1,60 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const converter = require('json-2-csv');
+const converter = require('json-2-csv')
 
-const express = require('express');
-var iconv = require('iconv-lite');
+const express = require('express')
+const fileUpload = require ('express-fileupload')
+const iconv = require('iconv-lite')
 
 const app = express()
 const port = parseInt(process.env.PORT) || 3000
 
+app.use(fileUpload({
+  limits: { fileSize: 5 * 1024 * 1024 },
+}))
+
+app.post('/api/upload', function(req, res) {
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  // Use the mv() method to place the file somewhere on your server
+  req.files.file.mv('notes.csv', function(err) {
+    if (err)
+      return res.status(500).send(err);
+
+    res.send('File uploaded!');
+  });
+});
+
 app.get('/api/:id', (req, res) => {
   const fileName = req.params.id
-  const readFile = async (fileName) => {
+
+  const readFile = (fileName) => {
     const urlParts = fileName.split('.')
     const fileExt = urlParts[1]
 
-    if (fileName === 'upload') {
-    }
-    else {
-      fs.readFile(fileName, 'utf8', async(err, data) => {
-        if (err) throw err
+    fs.readFile(fileName, 'utf8', async(err, data) => {
+      if (err) throw err
 
-        if (fileExt === 'csv') {
-          data = await converter.csv2jsonAsync(data, {keys: ['Name', 'Code', 'Note\r']})
-          // data = data.replace('\r', '')
-          // data = data.map(n => n['Note\r']);
-        }
-        
-        // Get rid of weird symbols in output
-        data = JSON.stringify(data)
-        const buf = iconv.encode(data, 'win1252')
-        data = iconv.decode(buf, 'utf8')
+      // if (fileExt === 'csv') {
+        data = await converter.csv2jsonAsync(data, {keys: ['Name', 'Code', 'Note']})
+        data = JSON.stringify(data, null, 2)
         console.log(data)
-       
-        res.send(JSON.stringify(JSON.parse(data), null, 2))
-      })
-    }
+      // }
+      
+      // Get rid of weird symbols in output~
+      const buf = iconv.encode(data, 'win1252')
+      data = iconv.decode(buf, 'utf8')
+      data = data.replaceAll("\\r", "");
+      data = data.replaceAll("\\n", "<br />");
+      
+      console.log(data)
+      res.send(data)
+    })
   }
+
   readFile(fileName)
 })
 
