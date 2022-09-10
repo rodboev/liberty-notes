@@ -72,6 +72,24 @@ img.header {
 	margin: 0 -0.2rem;
 }
 
+.upload .heading {
+	margin-top: 1.35rem;
+	color: gray;
+	font-size: 1.2rem;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+.upload input[type="file"] {
+	border: 0 none;
+	box-shadow: none;
+	padding: 0;
+}
+.upload input[type="submit"] {
+	box-shadow: none;
+	text-transform: uppercase;
+	padding: 0 1rem;
+}
+
 h4 {
 	font-size: 1.4rem;
 	font-weight: bold;
@@ -98,6 +116,20 @@ h4:last-of-type {
 }
 h4 ~ ul {
 	font-size: 0.85rem;
+}
+
+h5 {
+	display: inline-block;
+	font-weight: bold;
+	width: 2.5rem;
+	margin: 0;
+}
+.note {
+	display: inline-block;
+	left: 2.7rem;
+	width: 100%;
+	top: -1.1rem;
+	position: relative;
 }
 
 input, .table {

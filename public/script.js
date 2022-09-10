@@ -56,9 +56,9 @@ const prefixNotes = (notes) => {
 	const prefixedNotes = [];
 	for (let [i, note] of notes.entries()) {
 		note = `<span class="num">${i + 1}.</span>
-			Name: ${note['Name']}<br />
-			Code: ${note['Code']}<br />
-			Note: ${note['Note\r'].replace(/^Service: /, "")}`
+			<h5>Name:</h5> ${note['Name']}<br />
+			<h5>Code:</h5> ${note['Code']}<br />
+			<h5>Note:</h5> <span class="note">${note['Note'].replace(/^Service: /, "")}</span>`
 		prefixedNotes.push(note);
 	}
 	return prefixedNotes
@@ -107,11 +107,20 @@ const displayNotes = (notes) => {
 	return data;
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
+const refreshNotes = async () => {
 	const content = document.querySelector('.content');
+	content.innerHTML = '';
 	const notes = await fetchNotes();
 	const prefixedNotes = prefixNotes(notes);
 	const groupedNotes = groupNotes(prefixedNotes);
 	content.innerHTML = displayNotes(groupedNotes);
-});
+}
 
+async function saveFile(inp) {
+	let formData = new FormData()
+	formData.append("file", inp.files[0])
+	await fetch('/api/upload', {method: "POST", body: formData})
+	refreshNotes()
+}
+
+window.addEventListener('DOMContentLoaded', refreshNotes)

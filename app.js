@@ -37,19 +37,20 @@ app.get('/api/:id', (req, res) => {
 
     fs.readFile(fileName, 'utf8', async(err, data) => {
       if (err) throw err
+      console.log(data)
 
-      // if (fileExt === 'csv') {
-        data = await converter.csv2jsonAsync(data, {keys: ['Name', 'Code', 'Note']})
-        data = JSON.stringify(data, null, 2)
-        console.log(data)
-      // }
-      
-      // Get rid of weird symbols in output~
+      // Get rid of weird symbols in output
       const buf = iconv.encode(data, 'win1252')
       data = iconv.decode(buf, 'utf8')
       data = data.replaceAll("\\r", "");
+      data = data.replaceAll("\r", "");
       data = data.replaceAll("\\n", "<br />");
-      
+
+      //if (fileExt === 'csv') {
+        data = await converter.csv2jsonAsync(data, {keys: ['Name', 'Code', 'Note']})
+        data = JSON.stringify(data, null, 2)
+      //W}
+
       console.log(data)
       res.send(data)
     })
