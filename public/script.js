@@ -54,9 +54,8 @@ const categories = [
 
 const prefixNotes = (notes) => {
 	const prefixedNotes = [];
-	for (let [i, note] of notes.entries()) {
-		note = `<span class="num">${i + 1}.</span>
-			<h5>Name:</h5> ${note['Company']}<br />
+	for (let note of notes) {
+		note = `<h5>Name:</h5> ${note['Company']}<br />
 			<h5>Code:</h5> ${note['Location Code']}<br />
 			<h5>Note:</h5> <span class="note">${note['Note'].replace(/^Service: /, "")}</span>`
 		prefixedNotes.push(note);
@@ -70,7 +69,7 @@ const groupNotes = (notes) => {
 	for (const note of notes) {
 		// Highlight keywords in notes
 		const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
-		const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`);
+		const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`)
 		
 		// If no highlights, push to last category
 		if (!note.indexOf(highlightedNote)) {
@@ -91,8 +90,8 @@ const groupNotes = (notes) => {
 }
 
 const fetchNotes = async (json = '/api/notes.csv') => {
-	const response = await fetch(json);
-	const notes = await response.json();
+	const response = await fetch(json)
+	const notes = await response.json()
 	return notes;
 }
 
@@ -100,19 +99,18 @@ const displayNotes = (notes) => {
 	let data = '';
 	for (const category of categories) {
 		data += `<h4>${category.name}</h4>`
-		for (const note of category.notes) {
-			data += `<ul>${note}</ul>`
+		for (let [i, note] of category.notes.entries()) {
+			data += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
 		}
 	}
 	return data;
 }
 
 const refreshNotes = async () => {
-	const content = document.querySelector('.content');
+	const content = document.querySelector('.content')
 	const notes = await fetchNotes();
 	const prefixedNotes = prefixNotes(notes);
 	const groupedNotes = groupNotes(prefixedNotes);
-	// content.innerHTML = '';
 	content.innerHTML = displayNotes(groupedNotes);
 }
 
