@@ -55,13 +55,19 @@ const categories = [
 const prefixNotes = (notes) => {
 	const prefixedNotes = [];
 	for (let note of notes) {
-		note = `<h5>Name:</h5> ${note['Company']}<br />
-			<h5>Code:</h5> ${note['Location Code']}<br />
-			<h5>Note:</h5> <span class="note">${note['Note']
-				.replace(/^Service: /, "")
-				.replace(/\s{2,}/g, "<br />")
-			}</span>`
-		prefixedNotes.push(note)
+		if (note.hasOwnProperty('Note')) {
+			note = `<h5>Name:</h5> ${note['Company']}<br />
+				<h5>Code:</h5> ${note['Location Code']}<br />
+				<h5>Note:</h5> <span class="note">${note['Note']
+					.replace(/^Service: /, "")
+					.replace(/\s{2,}/g, "<br />")
+				}</span>`
+				prefixedNotes.push(note)
+		}
+		else {
+			alert("Couldn't find a \"Note\" column")
+			break
+		}
 	}
 	return prefixedNotes
 }
@@ -122,9 +128,17 @@ const refreshNotes = async () => {
 
 async function saveFile(input) {
 	let formData = new FormData()
-	formData.append("file", input.files[0])
-	await fetch('/api/upload', {method: "POST", body: formData})
-	refreshNotes()
+	const file = input.files[0]
+	const ext = file.name.indexOf('.') != -1 &&
+		file.name.substr(file.name.lastIndexOf('.') + 1, file.name.length)
+	if (ext === 'csv') {
+		formData.append("file", file)
+		await fetch('/api/upload', {method: "POST", body: formData})
+		refreshNotes()
+	}
+	else {
+		alert("Please choose a file with a file with a .csv extension.")
+	}
 }
 
 const input = document.querySelector('input[type="file"]')
