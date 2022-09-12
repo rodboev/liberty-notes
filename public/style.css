@@ -22,7 +22,8 @@ body {
 	padding: 0 1rem 2rem;
 }
 .content ul {
-	line-height: 1.3;
+	line-height: 1.425;
+	margin-bottom: -0.1rem;
 }
 .content ul .num {
 	font-weight: bold;
@@ -125,10 +126,10 @@ h5 {
 	margin: 0;
 }
 .note {
-	display: inline-block;
+	display: block;
 	left: 2.7rem;
-	width: 100%;
-	top: -1.1rem;
+	width: calc(100% - 2.5rem);
+	top: -1.2rem;
 	position: relative;
 }
 

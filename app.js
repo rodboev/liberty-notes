@@ -40,11 +40,13 @@ app.get('/api/:id', (req, res) => {
       console.log(data)
 
       // Get rid of weird symbols in output
+      /* No longer needed with new Report Writer configs?
       const buf = iconv.encode(data, 'win1252')
       data = iconv.decode(buf, 'utf8')
       data = data.replaceAll("\\r", "");
-      data = data.replaceAll("\r", "");
       data = data.replaceAll("\\n", "<br />");
+      */
+      data = data.replaceAll("\r", "");
 
       //if (fileExt === 'csv') {
         data = await converter.csv2jsonAsync(data, {keys: ['Company', 'Location Code', 'Note']})
