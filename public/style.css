@@ -3,7 +3,7 @@ body {
 	line-height: 1.5;
 	-webkit-text-size-adjust: 100%;
 }
-div, span, input {
+body, div, span, input, ul {
 	box-sizing: border-box;
 }
 body, input {
@@ -17,9 +17,15 @@ a:hover:not('.button') {
 }
 
 body {
-	max-width: fit-content;
 	margin: 0 auto;
 	padding: 0 1rem 2rem;
+	overflow-y: scroll;
+	max-width: 1080px;
+}
+@media (min-width: 481px) {
+	body {
+		width: 90vw;
+	}
 }
 .content ul {
 	line-height: 1.425;
@@ -36,12 +42,6 @@ body {
 	display: inline-block;
 	text-align: right;
 	padding-right: 0.6rem;
-}
-@media (min-width: 481px) {
-	body {
-		width: 60vw;
-		min-width: 900px;
-	}
 }
 @media (max-width: 480px) {
 	.content ul {

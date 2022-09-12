@@ -57,8 +57,11 @@ const prefixNotes = (notes) => {
 	for (let note of notes) {
 		note = `<h5>Name:</h5> ${note['Company']}<br />
 			<h5>Code:</h5> ${note['Location Code']}<br />
-			<h5>Note:</h5> <span class="note">${note['Note'].replace(/^Service: /, "")}</span>`
-		prefixedNotes.push(note);
+			<h5>Note:</h5> <span class="note">${note['Note']
+				.replace(/^Service: /, "")
+				.replace(/\s{2,}/g, "<br />")
+			}</span>`
+		prefixedNotes.push(note)
 	}
 	return prefixedNotes
 }
@@ -75,7 +78,7 @@ const groupNotes = (notes) => {
 		if (!note.indexOf(highlightedNote)) {
 			categories[categories.length-1].notes.push(note);
 		}
-		
+
 		// Organize into groups
 		for (const category of categories) {
 			for (const keyword of category.keywords) {
@@ -89,7 +92,7 @@ const groupNotes = (notes) => {
 	}
 }
 
-const fetchNotes = async (json = '/api/notes.csv') => {
+const fetchNotes = async (json = '/api/notes.json') => {
 	const response = await fetch(json)
 	const notes = await response.json()
 	return notes;
@@ -107,18 +110,24 @@ const displayNotes = (notes) => {
 }
 
 const refreshNotes = async () => {
-	const content = document.querySelector('.content')
+	for (const category of categories) {
+		category.notes.length = 0
+	}
 	const notes = await fetchNotes();
 	const prefixedNotes = prefixNotes(notes);
 	const groupedNotes = groupNotes(prefixedNotes);
+	const content = document.querySelector('.content')
 	content.innerHTML = displayNotes(groupedNotes);
 }
 
-async function saveFile(inp) {
+async function saveFile(input) {
 	let formData = new FormData()
-	formData.append("file", inp.files[0])
+	formData.append("file", input.files[0])
 	await fetch('/api/upload', {method: "POST", body: formData})
-	location.reload()
+	refreshNotes()
 }
+
+const input = document.querySelector('input[type="file"]')
+input.addEventListener('change', () => saveFile(input))
 
 window.addEventListener('DOMContentLoaded', refreshNotes)
