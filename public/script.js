@@ -52,25 +52,25 @@ const categories = [
 	}
 ]
 
-const prefixNotes = (notes) => {
-	const prefixedNotes = [];
+const formatNotes = (notes) => {
+	const formattedNotes = [];
 	for (let note of notes) {
 		if (note.hasOwnProperty('Note')) {
-			note = `<h5>Name:</h5>${note['Company']}<br />
-				<h5>Code:</h5>${note['Location Code']}<br />
+			note = `<h5>Name:</h5><a href="https://app.pestpac.com/location/detail.asp?LocationID=${note['Location ID']}">${note['Company']}</a><br />
+				<h5>Code:</h5><a href="https://app.pestpac.com/location/detail.asp?LocationID=${note['Location ID']}">${note['Location Code']}</a><br />
 				<h5>Note:</h5><span class="note">${note['Note']
 					.replace(/^Service: /, "")
 					.replace(/\s{2,}/g, "<br />")
 				}</span><br />
 				<h5>From:</h5>${note['Added By']}</span>`
-				prefixedNotes.push(note)
+				formattedNotes.push(note)
 		}
 		else {
 			alert("Couldn't find a \"Note\" column")
 			break
 		}
 	}
-	return prefixedNotes
+	return formattedNotes
 }
 
 const groupNotes = (notes) => {
@@ -120,11 +120,11 @@ const refreshNotes = async () => {
 	for (const category of categories) {
 		category.notes.length = 0
 	}
-	const notes = await fetchNotes();
-	const prefixedNotes = prefixNotes(notes);
-	const groupedNotes = groupNotes(prefixedNotes);
+	const notes = await fetchNotes()
+	const formattedNotes = formatNotes(notes)
+	const groupedNotes = groupNotes(formattedNotes)
 	const content = document.querySelector('.content')
-	content.innerHTML = displayNotes(groupedNotes);
+	content.innerHTML = displayNotes(groupedNotes)
 }
 
 async function saveFile(input) {
