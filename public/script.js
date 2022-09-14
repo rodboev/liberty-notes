@@ -56,12 +56,13 @@ const prefixNotes = (notes) => {
 	const prefixedNotes = [];
 	for (let note of notes) {
 		if (note.hasOwnProperty('Note')) {
-			note = `<h5>Name:</h5> ${note['Company']}<br />
-				<h5>Code:</h5> ${note['Location Code']}<br />
-				<h5>Note:</h5> <span class="note">${note['Note']
+			note = `<h5>Name:</h5>${note['Company']}<br />
+				<h5>Code:</h5>${note['Location Code']}<br />
+				<h5>Note:</h5><span class="note">${note['Note']
 					.replace(/^Service: /, "")
 					.replace(/\s{2,}/g, "<br />")
-				}</span>`
+				}</span><br />
+				<h5>From:</h5>${note['Added By']}</span>`
 				prefixedNotes.push(note)
 		}
 		else {
