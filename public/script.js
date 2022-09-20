@@ -28,7 +28,7 @@ const categories = [
       'keys',
       'gate',
       'lock',
-      'pin',
+      'code',
       'lockbox',
       'lock box',
     ],
@@ -59,7 +59,7 @@ const formatNotes = (notes) => {
   const formattedNotes = [];
   for (let note of notes) {
     if (note.hasOwnProperty('Note')) {
-      note = `<h5>Name:</h5><a href="https://app.pestpac.com/location/detail.asp?LocationID=${note['Location ID']}">${note['Company']}</a><br />
+      note = `<h5>Name:</h5>${note['Name']}">${note['Company']}</a><br />
         <h5>Code:</h5><a href="https://app.pestpac.com/location/detail.asp?LocationID=${note['Location ID']}">${note['Location Code']}</a><br />
         <h5>Note:</h5><span class="note">${note['Note']
           .replace(/^Service: /, "")
@@ -82,6 +82,7 @@ const groupNotes = (notes) => {
   for (const note of notes) {
     // Highlight keywords in notes
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
+    console.log(note)
     const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`)
     
     // If no highlights, push to last category

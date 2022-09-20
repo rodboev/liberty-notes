@@ -44,7 +44,7 @@ app.get('/api/notes.json', (req, res) => {
     data = await converter.csv2jsonAsync(data, {keys: ['Company', 'Location Code', 'Location ID', 'Note', 'Added By']})
     data = JSON.stringify(data, null, 2)
 
-    console.log(data)
+    // console.log(data)
     res.send(data)
   })
 })
