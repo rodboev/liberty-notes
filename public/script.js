@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 const categories = [
   {
@@ -60,10 +60,11 @@ const formatNotes = (notes) => {
   const url = "https://app.pestpac.com/location/detail.asp?LocationID"
   for (let note of notes) {
     if (note.hasOwnProperty('Note')) {
-      note = note.replace(/^Service: /, "").replace(/\s{2,}/g, "<br />")
       note = `<h5>Name:</h5><a href="${url}=${note['Company']}">${note['Company']}</a><br />
               <h5>Code:</h5><a href="${url}=${note['Location ID']}">${note['Location Code']}</a><br />
-              <h5>Note:</h5><span class="note">${note['Note']}</span><vr />
+              <h5>Note:</h5><span class="note">
+                ${note['Note'].replace(/^Service: /, "").replace(/\s{2,}/g, "<br />")}
+              </span><br />
               <h5>From:</h5>${note['Added By']}</span>`
       formattedNotes.push(note)
     }
@@ -72,6 +73,7 @@ const formatNotes = (notes) => {
       break
     }
   }
+  return formattedNotes
 }
 
 const groupNotes = (notes) => {
@@ -79,24 +81,21 @@ const groupNotes = (notes) => {
 
   for (const note of notes) {
     // Highlight keywords in notes
-    const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi'); 
-    console.log(note)
-    const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`)
+    const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
+    const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
     
     // If no highlights, push to last category
     if (!note.indexOf(highlightedNote)) {
-      categories[categories.length-1].notes.push(note);
+      categories[categories.length-1].notes.push(note)
     }
 
-    // Organize into priority groups
-    let prioritizedNotes = []
+    // Organize into groups
     for (const category of categories) {
       for (const keyword of category.keywords) {
-        const pattern = new RegExp('\\b' + keyword + '\\b', 'gi'); 
+        const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
         if (pattern.test(highlightedNote)) {
-          for (const notes of notes.entries) {
-            prioritizedNotes.push(category.notes[categories.priority - 1])
-          }
+          category.notes.push(highlightedNote)
+          break // TODO: Check for keyword priority
         }
       }
     }
@@ -110,14 +109,14 @@ const fetchNotes = async (json = '/api/notes.json') => {
 }
 
 const displayNotes = (notes) => {
-  let data = '';
+  let data = ''
   for (const category of categories) {
     data += `<h4>${category.name}</h4>`
     for (let [i, note] of category.notes.entries()) {
       data += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
     }
   }
-  return data;
+  return data
 }
 
 const refreshNotes = async () => {
