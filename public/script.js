@@ -28,7 +28,6 @@ const categories = [
       'keys',
       'gate',
       'lock',
-      'code',
       'lockbox',
       'lock box',
     ],
@@ -62,8 +61,9 @@ const formatNotes = (notes) => {
     if (note.hasOwnProperty('Note')) {
       note = `<h5>Name:</h5><a href="${url}=${note['Company']}">${note['Company']}</a><br />
               <h5>Code:</h5><a href="${url}=${note['Location ID']}">${note['Location Code']}</a><br />
-              <h5>Note:</h5><span class="note">
-                ${note['Note'].replace(/^Service: /, "").replace(/\s{2,}/g, "<br />")}
+              <h5>Note:</h5><span class="note">${note['Note']
+                .replace(/^Service: /, "")
+                .replace(/\s{2,}/g, "<br />")}
               </span><br />
               <h5>From:</h5>${note['Added By']}</span>`
       formattedNotes.push(note)
@@ -84,12 +84,16 @@ const groupNotes = (notes) => {
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
     const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
     
-    // If no highlights, push to last category
     if (!note.indexOf(highlightedNote)) {
+      // If no highlights, push to last category
       categories[categories.length-1].notes.push(note)
     }
+    else {
+      // If highlighted, determine priority group
+      for (const note of highlightedNote) {
+      }
+    }
 
-    // Organize into groups
     for (const category of categories) {
       for (const keyword of category.keywords) {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
@@ -118,6 +122,8 @@ const displayNotes = (notes) => {
   }
   return data
 }
+
+const pipeline = (f, g) => (...args) => g(f(...args));
 
 const refreshNotes = async () => {
   for (const category of categories) {
