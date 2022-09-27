@@ -59,14 +59,17 @@ const formatNotes = (notes) => {
   const url = "https://app.pestpac.com/location/detail.asp?LocationID"
   for (let note of notes) {
     if (note.hasOwnProperty('Note')) {
-      note = `<h5>Name:</h5><a href="${url}=${note['Company']}">${note['Company']}</a><br />
-              <h5>Code:</h5><a href="${url}=${note['Location ID']}">${note['Location Code']}</a><br />
-              <h5>Note:</h5><span class="note">${note['Note']
-                .replace(/^Service: /, "")
-                .replace(/\s{2,}/g, "<br />")}
-              </span><br />
-              <h5>From:</h5>${note['Added By']}</span>`
-      formattedNotes.push(note)
+      const namesToExclude = ['MIRIAM', 'CAROLINE', 'JAMESGAMM']
+      if (!namesToExclude.includes(note['Added By'])) {
+        note = `<h5>Name:</h5><a href="${url}=${note['Company']}">${note['Company']}</a><br />
+                <h5>Code:</h5><a href="${url}=${note['Location ID']}">${note['Location Code']}</a><br />
+                <h5>Note:</h5><span class="note">${note['Note']
+                  .replace(/^Service: /, "")
+                  .replace(/\s{2,}/g, "<br />")}
+                </span><br />
+                <h5>From:</h5>${note['Added By']}</span>`
+        formattedNotes.push(note)
+      }
     }
     else {
       alert("Couldn't find a \"Note\" column")
@@ -88,12 +91,24 @@ const groupNotes = (notes) => {
       // If no highlights, push to last category
       categories[categories.length-1].notes.push(note)
     }
+    /*
     else {
-      // If highlighted, determine priority group
-      for (const note of highlightedNote) {
-      }
+      // TODO: If highlighted, determine priority group
+      // for (const highlight of highlightedNote) {
+        for (const category of categories) {
+          for (const keyword of keywords) {
+            if (category.keywords.includes(keyword)) {
+              console.log(`Priority of "${keyword}" in ${highlightedNote.substr(0, 10)}: ${category.priority}`)
+              console.log(highlightedNote)
+              highlightedNote.replace(`<span class='highlight'>`, `<span class='highlight' data-priority='${category.priority}'>`)
+              console.log(highlightedNote)
+            }
+          }
+        }
+      // }
     }
-
+    */
+   
     for (const category of categories) {
       for (const keyword of category.keywords) {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
