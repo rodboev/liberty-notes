@@ -3,16 +3,11 @@
 const categories = [
   {
     name: 'SERVICE',
-    priority: 1, // highest priority
     keywords: [
       'heavy',
       'sanitation',
       'garbage',
       'breeding ground',
-      'tons of',
-      'ton of',
-      'lots of',
-      'lot of',
       'alarm',
       'advise',
       'advice',
@@ -22,7 +17,6 @@ const categories = [
   },
   {
     name: 'KEY',
-    priority: 2,
     keywords: [
       'key',
       'keys',
@@ -35,7 +29,6 @@ const categories = [
   },
   {
     name: 'SALES',
-    priority: 3,
     keywords: [
       'entry point',
       'entry points',
@@ -61,11 +54,11 @@ const formatNotes = (notes) => {
     if (note.hasOwnProperty('Note')) {
       const namesToExclude = ['MIRIAM', 'CAROLINE', 'JAMESGAMM']
       if (!namesToExclude.includes(note['Added By'])) {
-        note = `<h5>Name:</h5><a href="${url}=${note['Company']}">${note['Company']}</a><br />
-                <h5>Code:</h5><a href="${url}=${note['Location ID']}">${note['Location Code']}</a><br />
+        note = `<h5>Name:</h5><a href="${url}=${note['Location ID']}">${note['Company']}</a>
+                <a class="code" href="${url}=${note['Location ID']}">[${note['Location Code']}]</a><br />
                 <h5>Note:</h5><span class="note">${note['Note']
-                  .replace(/^Service: /, "")
-                  .replace(/\s{2,}/g, "<br />")}
+                 .replace(/^Service: /, "")
+                 .replace(/\s{2,}/g, "<br />")}
                 </span><br />
                 <h5>From:</h5>${note['Added By']}</span>`
         formattedNotes.push(note)
@@ -83,32 +76,12 @@ const groupNotes = (notes) => {
   const keywords = categories.flatMap(c => c.keywords)
 
   for (const note of notes) {
-    // Highlight keywords in notes
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
     const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
     
     if (!note.indexOf(highlightedNote)) {
-      // If no highlights, push to last category
       categories[categories.length-1].notes.push(note)
     }
-    /*
-    else {
-      // TODO: If highlighted, determine priority group
-      // for (const highlight of highlightedNote) {
-        for (const category of categories) {
-          for (const keyword of keywords) {
-            if (category.keywords.includes(keyword)) {
-              console.log(`Priority of "${keyword}" in ${highlightedNote.substr(0, 10)}: ${category.priority}`)
-              console.log(highlightedNote)
-              highlightedNote.replace(`<span class='highlight'>`, `<span class='highlight' data-priority='${category.priority}'>`)
-              console.log(highlightedNote)
-            }
-          }
-        }
-      // }
-    }
-    */
-   
     for (const category of categories) {
       for (const keyword of category.keywords) {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
@@ -118,6 +91,32 @@ const groupNotes = (notes) => {
         }
       }
     }
+  }
+}
+
+const markNotes = () => {
+  const priorities = categories.length
+  const names = categories.flatMap(c => c.name).join(',').toLocaleLowerCase().split(',')
+  const keywords = categories.flatMap(c => c.keywords)
+
+  let instances = []
+  instances.length = priorities;
+  for (let name of names) {
+    name = new Mark(document.querySelector(`.details-${name}`))
+    name.mark(keywords, {
+      "className": "highlight",
+      "separateWordSearch": "false",
+      "exclude": ["a"],
+      "diacritics": "false",
+      /*
+      "accuracy": "complementary",
+      "value": "exactly",
+      "limiters": [",", "."],
+      "debug": "true",
+      "acrossElements": false,
+      "log": window.console
+      */
+    })
   }
 }
 
@@ -131,9 +130,11 @@ const displayNotes = (notes) => {
   let data = ''
   for (const category of categories) {
     data += `<h4>${category.name}</h4>`
+    data += `<div class="details-${category.name.toLocaleLowerCase()}">`
     for (let [i, note] of category.notes.entries()) {
       data += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
     }
+    data += `</div>`
   }
   return data
 }
@@ -149,6 +150,7 @@ const refreshNotes = async () => {
 	const groupedNotes = groupNotes(formattedNotes)
   const content = document.querySelector('.content')
   content.innerHTML = displayNotes(groupedNotes)
+  markNotes()
 }
 
 async function saveFile(input) {

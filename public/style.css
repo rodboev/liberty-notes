@@ -11,6 +11,15 @@ body, input {
 }
 a {
 	color: #3376d2;
+	text-decoration-thickness: 0.08rem;
+	position: relative;
+	top: -0.1rem;
+}
+a.code {
+	display: inline-block;
+	position: relative;
+	left: -0.2rem;
+	margin-left: 0.8rem;
 }
 a:hover:not('.button') {
 	color: #006deb;
@@ -67,10 +76,19 @@ img.header {
 		margin: 0.75rem 0 -1.4rem -0.8rem;
 	}
 }
+
 .highlight {
-	background-color: rgb(255, 255, 168);
 	padding: 0 0.2rem 0.1rem;
 	margin: 0 -0.2rem;
+}
+.details-service .highlight {
+	background-color: #FFCCCB;
+}
+.details-key .highlight {
+	background-color: #FFE388;
+}
+.details-sales .highlight {
+	background-color: rgb(255, 255, 168);
 }
 
 .upload .heading {
@@ -125,16 +143,18 @@ h4 ~ ul {
 h5 {
 	display: inline-block;
 	font-weight: bold;
-	width: 2.8rem;
+	width: 3.2rem;
 	margin: 0;
+	position: relative;
+	margin-bottom: -0.5rem;
 }
 .note {
 	display: block;
-	left: 2.8rem;
+	left: 3.2rem;
 	width: calc(100% - 2.5rem);
-	top: -1.2rem;
+	top: -1.3rem;
 	position: relative;
-	margin-bottom: -2.4rem;
+	margin-bottom: -2.5rem;
 }
 
 input, .table {
