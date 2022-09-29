@@ -8,11 +8,15 @@ const categories = [
       'sanitation',
       'garbage',
       'breeding ground',
+      'breeding site',
       'alarm',
       'advise',
       'advice',
       'infestation'
     ],
+    regex: new RegExp("/\bheavy\b|\b.+?sanit.+?\b|"
+      + "\bgarbage\b|\bbreeding( ground| site)?\b|"
+      + "\balarm\b|\badvi[sc]e\b|\binfest.+?\b/g"),
     notes: []
   },
   {
@@ -25,6 +29,7 @@ const categories = [
       'lockbox',
       'lock box',
     ],
+    regex: new RegExp("/\bkeys?\b|\bgate\b|\block ?box\b|"),
     notes: []
   },
   {
@@ -38,6 +43,8 @@ const categories = [
       'need',
       'needs'
     ],
+    regex: new RegExp("/\bentry( point)?s?\b|\brecommend.+?\b|"
+      + "\bneed.+?\b"),
     notes: []
   },
   {
@@ -57,9 +64,9 @@ const formatNotes = (notes) => {
         note = `<h5>Name:</h5><a href="${url}=${note['Location ID']}">${note['Company']}</a>
                 <a class="code" href="${url}=${note['Location ID']}">[${note['Location Code']}]</a><br />
                 <h5>Note:</h5><span class="note">${note['Note']
-                 .replace(/^Service: /, "")
-                 .replace(/\s{2,}/g, "<br />")}
-                </span><br />
+                  .replace(/^Service: /, "")
+                  .replace(/\s{2,}/g, "<br />")}
+                 </span><br />
                 <h5>From:</h5>${note['Added By']}</span>`
         formattedNotes.push(note)
       }
@@ -98,18 +105,21 @@ const markNotes = () => {
   const priorities = categories.length
   const names = categories.flatMap(c => c.name).join(',').toLocaleLowerCase().split(',')
   const keywords = categories.flatMap(c => c.keywords)
+  const regexes = categories.flatMap(c => c.regex).join(',').toLocaleLowerCase().split(',')
 
   let instances = []
   instances.length = priorities;
   for (let name of names) {
     name = new Mark(document.querySelector(`.details-${name}`))
-    name.mark(keywords, {
+    name.mark(regexes, {
+      "element": "span",
       "className": "highlight",
       "separateWordSearch": "false",
       "exclude": ["a"],
       "diacritics": "false",
+      "wildcards": "disabled", // this default is stated incorrectly in the API docs
+      "accuracy": "exactly",
       /*
-      "accuracy": "complementary",
       "value": "exactly",
       "limiters": [",", "."],
       "debug": "true",
