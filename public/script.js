@@ -14,9 +14,7 @@ const categories = [
       'advice',
       'infestation'
     ],
-    regex: new RegExp("/\bheavy\b|\b.+?sanit.+?\b|"
-      + "\bgarbage\b|\bbreeding( ground| site)?\b|"
-      + "\balarm\b|\badvi[sc]e\b|\binfest.+?\b/g"),
+    // regex: /\bheavy\b|\b.+?sanit.+?\b|\bgarbage\b|\bbreeding.+?\b|\balarm\b|\badvi[sc]e\b|\binfest.+?\b/,
     notes: []
   },
   {
@@ -29,7 +27,7 @@ const categories = [
       'lockbox',
       'lock box',
     ],
-    regex: new RegExp("/\bkeys?\b|\bgate\b|\block ?box\b|"),
+    // regex: /\bkeys?\b|\bgate\b|\block ?box\b/,
     notes: []
   },
   {
@@ -43,8 +41,7 @@ const categories = [
       'need',
       'needs'
     ],
-    regex: new RegExp("/\bentry( point)?s?\b|\brecommend.+?\b|"
-      + "\bneed.+?\b"),
+    // regex: /\bentry( ?way| point)?s?\b|\brecommend.+?\b|\bneed.+?\b/,
     notes: []
   },
   {
@@ -53,6 +50,17 @@ const categories = [
     notes: []
   }
 ]
+
+/*
+let roots = null
+for (const category of categories) {
+    console.log(category.name)
+    roots += new RegExp(category.regex)
+}
+const regexes = String(new RegExp(roots))
+console.log(roots) // looks more correct
+console.log(regexes)
+*/
 
 const formatNotes = (notes) => {
   const formattedNotes = []
@@ -64,8 +72,8 @@ const formatNotes = (notes) => {
         note = `<h5>Name:</h5><a href="${url}=${note['Location ID']}">${note['Company']}</a>
                 <a class="code" href="${url}=${note['Location ID']}">[${note['Location Code']}]</a><br />
                 <h5>Note:</h5><span class="note">${note['Note']
-                  .replace(/^Service: /, "")
-                  .replace(/\s{2,}/g, "<br />")}
+                   .replace(/^Service: /, "")
+                   .replace(/\s{2,}/g, "<br />")}
                  </span><br />
                 <h5>From:</h5>${note['Added By']}</span>`
         formattedNotes.push(note)
@@ -81,7 +89,7 @@ const formatNotes = (notes) => {
 
 const groupNotes = (notes) => {
   const keywords = categories.flatMap(c => c.keywords)
-
+  
   for (const note of notes) {
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
     const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
@@ -94,24 +102,48 @@ const groupNotes = (notes) => {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
         if (pattern.test(highlightedNote)) {
           category.notes.push(highlightedNote)
-          break // TODO: Check for keyword priority
+          break
         }
       }
     }
   }
+
+  // Remove duplicate notes in Sales if they already appear in Service
+  for (const category of categories) {
+    let serviceNotes
+    let salesNotes
+
+    if (category.name === 'SERVICE' && Boolean(category.notes)) {
+      serviceNotes = category.notes
+    }
+    console.log(category.name, serviceNotes)
+    /*
+    if (category.name === 'SALES' && Boolean(category.notes)) {
+      salesNotes = category.notes
+    }
+    console.log(category.name, salesNotes)
+    
+    for (let salesNote of salesNotes) {
+      salesNotes.filter(note => {
+        return note !== [salesNote]
+      })
+    }
+    */
+  }
 }
 
+/*
 const markNotes = () => {
   const priorities = categories.length
   const names = categories.flatMap(c => c.name).join(',').toLocaleLowerCase().split(',')
   const keywords = categories.flatMap(c => c.keywords)
-  const regexes = categories.flatMap(c => c.regex).join(',').toLocaleLowerCase().split(',')
 
   let instances = []
   instances.length = priorities;
   for (let name of names) {
     name = new Mark(document.querySelector(`.details-${name}`))
-    name.mark(regexes, {
+    
+    name.mark(keywords, {
       "element": "span",
       "className": "highlight",
       "separateWordSearch": "false",
@@ -119,16 +151,20 @@ const markNotes = () => {
       "diacritics": "false",
       "wildcards": "disabled", // this default is stated incorrectly in the API docs
       "accuracy": "exactly",
-      /*
-      "value": "exactly",
-      "limiters": [",", "."],
-      "debug": "true",
-      "acrossElements": false,
-      "log": window.console
-      */
-    })
-  }
+      "filter": function(textNode, foundTerm, totalCounter, counter) {
+        console.log(`Highlighted: ${foundTerm}`)
+        return true; // must return either true or false
+      },
+      // these don't work with regex
+      // "value": "exactly",
+      // "acrossElements": false,
+      // "limiters": [",", "."],
+      // "debug": "true",
+      // "log": window.console
+    }
+  )}
 }
+*/
 
 const fetchNotes = async (json = '/api/notes.json') => {
   const response = await fetch(json)
@@ -137,16 +173,16 @@ const fetchNotes = async (json = '/api/notes.json') => {
 }
 
 const displayNotes = (notes) => {
-  let data = ''
+  let displayedNote
   for (const category of categories) {
-    data += `<h4>${category.name}</h4>`
-    data += `<div class="details-${category.name.toLocaleLowerCase()}">`
+    displayedNote += `<h4>${category.name}</h4>`
+    displayedNote += `<div class="details-${category.name.toLocaleLowerCase()}">`
     for (let [i, note] of category.notes.entries()) {
-      data += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
+      displayedNote += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
     }
-    data += `</div>`
+    displayedNote += `</div>`
   }
-  return data
+  return displayedNote
 }
 
 const pipeline = (f, g) => (...args) => g(f(...args));
@@ -160,14 +196,14 @@ const refreshNotes = async () => {
 	const groupedNotes = groupNotes(formattedNotes)
   const content = document.querySelector('.content')
   content.innerHTML = displayNotes(groupedNotes)
-  markNotes()
+  // markNotes()
 }
 
 async function saveFile(input) {
   let formData = new FormData()
   const file = input.files[0]
   const ext = file.name.indexOf('.') != -1 &&
-    file.name.substr(file.name.lastIndexOf('.') + 1, file.name.length)
+  file.name.substr(file.name.lastIndexOf('.') + 1, file.name.length)
   if (ext === 'csv') {
     formData.append("file", file)
     await fetch('/api/upload', {method: "POST", body: formData})
