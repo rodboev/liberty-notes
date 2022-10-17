@@ -15,7 +15,8 @@ const categories = [
       'infestation'
     ],
     // regex: /\bheavy\b|\b.+?sanit.+?\b|\bgarbage\b|\bbreeding.+?\b|\balarm\b|\badvi[sc]e\b|\binfest.+?\b/,
-    notes: []
+    notes: [],
+    notesShown: []
   },
   {
     name: 'KEY',
@@ -28,7 +29,8 @@ const categories = [
       'lock box',
     ],
     // regex: /\bkeys?\b|\bgate\b|\block ?box\b/,
-    notes: []
+    notes: [],
+    notesShown: []
   },
   {
     name: 'SALES',
@@ -39,15 +41,17 @@ const categories = [
       'recommended',
       'recommendation',
       'need',
-      'needs'
+      'needs',
     ],
     // regex: /\bentry( ?way| point)?s?\b|\brecommend.+?\b|\bneed.+?\b/,
-    notes: []
+    notes: [],
+    notesShown: []
   },
   {
     name: 'UNCATEGORIZED',
     keywords: [],
-    notes: []
+    notes: [],
+    notesShown: []
   }
 ]
 
@@ -64,13 +68,13 @@ console.log(regexes)
 
 const formatNotes = (notes) => {
   const formattedNotes = []
-  const url = "https://app.pestpac.com/location/detail.asp?LocationID"
+  const url = "https://app.pestpac.com/location/detail.asp?LocationID="
   for (let note of notes) {
     if (note.hasOwnProperty('Note')) {
       const namesToExclude = ['MIRIAM', 'CAROLINE', 'JAMESGAMM']
       if (!namesToExclude.includes(note['Added By'])) {
-        note = `<h5>Name:</h5><a href="${url}=${note['Location ID']}">${note['Company']}</a>
-                <a class="code" href="${url}=${note['Location ID']}">[${note['Location Code']}]</a><br />
+        note = `<h5>Name:</h5><a href="${url}${note['Location ID']}">${note['Company']}</a>
+                <a class="code" href="${url}${note['Location ID']}">[${note['Location Code']}]</a><br />
                 <h5>Note:</h5><span class="note">${note['Note']
                    .replace(/^Service: /, "")
                    .replace(/\s{2,}/g, "<br />")}
@@ -108,63 +112,30 @@ const groupNotes = (notes) => {
     }
   }
 
-  // Remove duplicate notes in Sales if they already appear in Service
+  // Remove Service notes that already appear in Sales
+  /*
   for (const category of categories) {
-    let serviceNotes
-    let salesNotes
+    let serviceNotes = []
+    let salesNotes = []
 
-    if (category.name === 'SERVICE' && Boolean(category.notes)) {
-      serviceNotes = category.notes
+    if (category.name === 'SERVICE') {
+      serviceNotes = categories[0].notes
     }
-    console.log(category.name, serviceNotes)
-    /*
-    if (category.name === 'SALES' && Boolean(category.notes)) {
-      salesNotes = category.notes
+    if (category.name === 'SALES') {
+      salesNotes = categories[2].notes
     }
-    console.log(category.name, salesNotes)
-    
-    for (let salesNote of salesNotes) {
-      salesNotes.filter(note => {
-        return note !== [salesNote]
-      })
+
+    for (const salesNote of salesNotes) {
+      if (serviceNotes.includes(salesNote)) {
+        salesNotes.filter(entries => {
+          return entries !== salesNote
+        })
+      }
     }
-    */
   }
+  */
+  return notes
 }
-
-/*
-const markNotes = () => {
-  const priorities = categories.length
-  const names = categories.flatMap(c => c.name).join(',').toLocaleLowerCase().split(',')
-  const keywords = categories.flatMap(c => c.keywords)
-
-  let instances = []
-  instances.length = priorities;
-  for (let name of names) {
-    name = new Mark(document.querySelector(`.details-${name}`))
-    
-    name.mark(keywords, {
-      "element": "span",
-      "className": "highlight",
-      "separateWordSearch": "false",
-      "exclude": ["a"],
-      "diacritics": "false",
-      "wildcards": "disabled", // this default is stated incorrectly in the API docs
-      "accuracy": "exactly",
-      "filter": function(textNode, foundTerm, totalCounter, counter) {
-        console.log(`Highlighted: ${foundTerm}`)
-        return true; // must return either true or false
-      },
-      // these don't work with regex
-      // "value": "exactly",
-      // "acrossElements": false,
-      // "limiters": [",", "."],
-      // "debug": "true",
-      // "log": window.console
-    }
-  )}
-}
-*/
 
 const fetchNotes = async (json = '/api/notes.json') => {
   const response = await fetch(json)
@@ -172,31 +143,39 @@ const fetchNotes = async (json = '/api/notes.json') => {
   return notes
 }
 
-const displayNotes = (notes) => {
-  let displayedNote
+const renderCategories = (notes) => {
+  let rendered = ''
   for (const category of categories) {
-    displayedNote += `<h4>${category.name}</h4>`
-    displayedNote += `<div class="details-${category.name.toLocaleLowerCase()}">`
-    for (let [i, note] of category.notes.entries()) {
-      displayedNote += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
+    rendered += `<h4>${category.name}</h4>`
+    rendered += `<div class="details-${category.name.toLocaleLowerCase()}">`
+    // Take out notes in Sales that already appear in Service
+    if (category.name !== 'SALES') {
+      for (let [i, note] of category.notes.entries()) {
+        rendered += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
+      }
     }
-    displayedNote += `</div>`
-  }
-  return displayedNote
+    else {
+    }
+      /*
+      if (category.name === 'SALES' && category.notes.includes(notes2)) {
+        // categories[0].notesShown.push(note)
+      }
+      */
+  rendered += `</div>`
+  } 
+  return rendered
 }
-
-const pipeline = (f, g) => (...args) => g(f(...args));
 
 const refreshNotes = async () => {
   for (const category of categories) {
     category.notes.length = 0
+    category.notesShown.length = 0
   }
+  
   const notes = await fetchNotes()
-	const formattedNotes = formatNotes(notes)
-	const groupedNotes = groupNotes(formattedNotes)
   const content = document.querySelector('.content')
-  content.innerHTML = displayNotes(groupedNotes)
-  // markNotes()
+  const pipeline = (...fns) => fns.reduce((f, g) => (...args) => g(f(...args)))
+  content.innerHTML = pipeline(formatNotes, groupNotes, renderCategories)(notes)
 }
 
 async function saveFile(input) {
