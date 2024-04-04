@@ -161,6 +161,7 @@ const fetchNotes = async (json = '/api/notes.json') => {
 const renderCategories = (notes) => {
   let rendered = ''
   for (const category of categories) {
+    rendered += `<section class="section-${category.name.toLocaleLowerCase()}">`
     rendered += `<h4>${category.name}</h4>`
     rendered += `<div class="details-${category.name.toLocaleLowerCase()}">`
     // Take out notes in Sales that already appear in Service
@@ -171,12 +172,7 @@ const renderCategories = (notes) => {
     }
     else {
     }
-      /*
-      if (category.name === 'SALES' && category.notes.includes(notes2)) {
-        // categories[0].notesShown.push(note)
-      }
-      */
-  rendered += `</div>`
+  rendered += `</div></section>`
   } 
   return rendered
 }
@@ -191,6 +187,8 @@ const refreshNotes = async () => {
   const content = document.querySelector('.content')
   const pipeline = (...fns) => fns.reduce((f, g) => (...args) => g(f(...args)))
   content.innerHTML = pipeline(formatNotes, groupNotes, renderCategories)(notes)
+
+  initNav()
 }
 
 async function saveFile(input) {
@@ -212,3 +210,57 @@ const input = document.querySelector('input[type="file"]')
 input.addEventListener('change', () => saveFile(input))
 
 window.addEventListener('DOMContentLoaded', refreshNotes)
+
+/* ------------------ */
+/* Section navigation */
+/* ------------------ */
+
+function initNav() {
+  const nav = document.querySelector('nav')
+  const prevBtn = document.querySelector('button.prev')
+  const nextBtn = document.querySelector('button.next')
+  const sections = document.querySelectorAll('section')
+
+  let currentSectionIndex = 0
+
+  function showScrollButtons() {
+    prevBtn.style.display = currentSectionIndex > 0 ? 'block' : 'none'
+    nextBtn.style.display = currentSectionIndex < sections.length - 1 ? 'block' : 'none'
+  }
+
+  function checkSectionVisibility() {
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i]
+      const rect = section.getBoundingClientRect()
+      const visibleHeight = window.innerHeight * 0.5
+      if (rect.top <= visibleHeight && rect.bottom >= visibleHeight) {
+        //console.log(`y: ${document.body.scrollTop}, section: ${i}, top: ${rect.top}, bottom: ${rect.bottom}`)
+        currentSectionIndex = i
+        showScrollButtons()
+        return
+      }
+    }
+
+    prevBtn.style.display = 'none'
+    nextBtn.style.display = 'none'
+  }
+
+  function handleButtonClick(event) {
+    if (event.target === prevBtn) {
+      currentSectionIndex = Math.max(0, currentSectionIndex - 1)
+    }
+    else if (event.target === nextBtn) {
+      currentSectionIndex = Math.min(sections.length - 1, currentSectionIndex + 1)
+    }
+    sections[currentSectionIndex].scrollIntoView({ behavior: 'smooth' })
+    showScrollButtons()
+  }
+
+  prevBtn.addEventListener('click', handleButtonClick)
+  nextBtn.addEventListener('click', handleButtonClick)
+
+  window.addEventListener('scroll', checkSectionVisibility, true)
+
+  // Initial check
+  checkSectionVisibility()
+}
