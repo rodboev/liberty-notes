@@ -2,6 +2,12 @@
 
 const categories = [
   {
+    name: '911',
+    keywords: [],
+    notes: [],
+    notesShown: []
+  },
+  {
     name: 'SERVICE',
     keywords: [
       'heavy',
@@ -55,39 +61,44 @@ const categories = [
   }
 ]
 
-/*
-let roots = null
-for (const category of categories) {
-    console.log(category.name)
-    roots += new RegExp(category.regex)
+const getCategoryIndex = (name) => {
+  for (let i = 0; i < categories.length; i++) {
+    if (categories[i].name === name) {
+      return i;
+    }
+  }
+  return -1;
 }
-const regexes = String(new RegExp(roots))
-console.log(roots) // looks more correct
-console.log(regexes)
-*/
 
 const formatNotes = (notes) => {
   const formattedNotes = []
   const url = "https://app.pestpac.com/location/detail.asp?LocationID="
-  for (let note of notes) {
+
+  for (const note of notes) {
     if (note.hasOwnProperty('Note')) {
       const namesToExclude = ['MIRIAM', 'CAROLINE', 'JAMESGAMM']
       if (!namesToExclude.includes(note['Added By'])) {
-        note = `<h5>Name:</h5><a href="${url}${note['Location ID']}">${note['Company']}</a>
-                <a class="code" href="${url}${note['Location ID']}">[${note['Location Code']}]</a><br />
-                <h5>Note:</h5><span class="note">${note['Note']
-                   .replace(/^Service: /, "")
-                   .replace(/\s{2,}/g, "<br />")}
-                 </span><br />
-                <h5>From:</h5>${note['Added By']}</span>`
-        formattedNotes.push(note)
+        const formattedNote = structuredClone(note)
+        
+        formattedNote.formatted =
+          `<h5>Name:</h5><a href="${url}${note['Location ID']}">${note['Company']}</a>
+          <a class="code" href="${url}${note['Location ID']}">[${note['Location Code']}]</a><br />
+          <h5>Code:</h5>${note['Note Code']}<br />
+          <h5>Note:</h5><span class="note">${note['Note']
+            .replace(/^Service: /, "")
+            .replace(/\s{2,}/g, "<br />")}
+          </span><br />
+          <h5>From:</h5>${note['Added By']}</span>`
+        
+        formattedNotes.push(formattedNote)
       }
     }
     else {
-      alert("Couldn't find a \"Note\" column")
+      alert(`Couldn't find a "Note" column`)
       break
     }
   }
+
   return formattedNotes
 }
 
@@ -95,12 +106,16 @@ const groupNotes = (notes) => {
   const keywords = categories.flatMap(c => c.keywords)
   
   for (const note of notes) {
-    const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
-    const highlightedNote = note.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
-    
-    if (!note.indexOf(highlightedNote)) {
-      categories[categories.length-1].notes.push(note)
+    if (note['Note Code'] === '911 EMER') {
+      categories[getCategoryIndex('911')].notes.push(note.formatted)
     }
+
+    const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
+    const highlightedNote = note.formatted.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
+    if (!note.formatted.indexOf(highlightedNote)) {
+      categories[getCategoryIndex('UNCATEGORIZED')].notes.push(note.formatted)
+    }
+
     for (const category of categories) {
       for (const keyword of category.keywords) {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
