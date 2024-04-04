@@ -81,8 +81,8 @@ const formatNotes = (notes) => {
         const formattedNote = structuredClone(note)
         
         formattedNote.formatted =
-          `<h5>Name:</h5><a href="${url}${note['Location ID']}">${note['Company']}</a>
-          <a class="code" href="${url}${note['Location ID']}">[${note['Location Code']}]</a><br />
+          `<h5>Name:</h5><a href="${url}${note['Location ID']}" target="_new">${note['Company']}</a>
+          <a class="code" href="${url}${note['Location ID']}" target="_new">[${note['Location Code']}]</a><br />
           <h5>Code:</h5>${note['Note Code']}<br />
           <h5>Note:</h5><span class="note">${note['Note']
             .replace(/^Service: /, "")
