@@ -19,7 +19,7 @@ a.code {
 	display: inline-block;
 	position: relative;
 	left: -0.2rem;
-	margin-left: 0.6rem;
+	margin-left: 0.5rem;
 }
 a:hover:not('.button') {
 	color: #006deb;
