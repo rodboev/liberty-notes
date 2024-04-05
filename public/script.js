@@ -214,6 +214,7 @@ window.addEventListener('DOMContentLoaded', refreshNotes)
 /* ------------------ */
 /* Section navigation */
 /* ------------------ */
+let checkNavVisibility;
 
 function initNav() {
   const nav = document.querySelector('nav')
@@ -224,8 +225,21 @@ function initNav() {
   let currentSectionIndex = 0
 
   function showScrollButtons() {
-    prevBtn.style.display = currentSectionIndex > 0 ? 'block' : 'none'
-    nextBtn.style.display = currentSectionIndex < sections.length - 1 ? 'block' : 'none'
+    if (currentSectionIndex > 0) {
+      prevBtn.style.opacity = '1'
+      prevBtn.style.visibility = 'visible'
+    }
+    else {
+      prevBtn.style.opacity = '0'
+    }
+
+    if (currentSectionIndex < sections.length - 1) {
+      nextBtn.style.opacity = '1'
+      nextBtn.style.visibility = 'visible'
+    }
+    else {
+      nextBtn.style.opacity = '0'
+    }
   }
 
   function checkSectionVisibility() {
@@ -241,8 +255,8 @@ function initNav() {
       }
     }
 
-    prevBtn.style.display = 'none'
-    nextBtn.style.display = 'none'
+    prevBtn.style.opacity = '0'
+    nextBtn.style.opacity = '0'
   }
 
   function handleButtonClick(event) {
@@ -263,4 +277,10 @@ function initNav() {
 
   // Initial check
   checkSectionVisibility()
+
+  clearInterval(checkNavVisibility)
+  checkNavVisibility = setInterval(() => {
+    if (window.getComputedStyle(prevBtn).opacity == '0') prevBtn.style.visibility = 'hidden'
+    if (window.getComputedStyle(nextBtn).opacity == '0') nextBtn.style.visibility = 'hidden'
+  }, 250)
 }

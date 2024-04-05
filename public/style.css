@@ -1,5 +1,5 @@
 body {
-	font: 12pt 'Open Sans', sans-serif;
+	font: 12pt 'Noto Sans', sans-serif;
 	line-height: 1.5;
 	-webkit-text-size-adjust: 100%;
 }
@@ -130,15 +130,17 @@ nav {
 	justify-content: flex-end;
 }
 nav button {
-	font-family: sans-serif;
-	font-size: 10pt;
+	font-family: inherit;
+	font-size: 10.5pt;
 	text-transform: uppercase;
 	background: #eee;
 	border: 1px solid #ccc;
 	border-radius: var(--button-radius);
 	padding: 10px 13px 9px 12px;
 	cursor: pointer;
-	display: none;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 250ms ease-in;
 }
 nav button symbol { 
 	color: #333;
