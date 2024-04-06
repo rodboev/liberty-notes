@@ -20,7 +20,6 @@ const categories = [
       'advice',
       'infestation'
     ],
-    // regex: /\bheavy\b|\b.+?sanit.+?\b|\bgarbage\b|\bbreeding.+?\b|\balarm\b|\badvi[sc]e\b|\binfest.+?\b/,
     notes: [],
     notesShown: []
   },
@@ -34,7 +33,6 @@ const categories = [
       'lockbox',
       'lock box',
     ],
-    // regex: /\bkeys?\b|\bgate\b|\block ?box\b/,
     notes: [],
     notesShown: []
   },
@@ -49,7 +47,6 @@ const categories = [
       'need',
       'needs',
     ],
-    // regex: /\bentry( ?way| point)?s?\b|\brecommend.+?\b|\bneed.+?\b/,
     notes: [],
     notesShown: []
   },
@@ -126,29 +123,7 @@ const groupNotes = (notes) => {
       }
     }
   }
-
-  // Remove Service notes that already appear in Sales
-  /*
-  for (const category of categories) {
-    let serviceNotes = []
-    let salesNotes = []
-
-    if (category.name === 'SERVICE') {
-      serviceNotes = categories[0].notes
-    }
-    if (category.name === 'SALES') {
-      salesNotes = categories[2].notes
-    }
-
-    for (const salesNote of salesNotes) {
-      if (serviceNotes.includes(salesNote)) {
-        salesNotes.filter(entries => {
-          return entries !== salesNote
-        })
-      }
-    }
-  }
-  */
+  
   return notes
 }
 
@@ -161,7 +136,7 @@ const fetchNotes = async (json = '/api/notes.json') => {
 const renderCategories = (notes) => {
   let rendered = ''
   for (const category of categories) {
-    rendered += `<section class="section-${category.name.toLocaleLowerCase()}">`
+    rendered += `<section>`
     rendered += `<h4>${category.name}</h4>`
     rendered += `<div class="details-${category.name.toLocaleLowerCase()}">`
     // Take out notes in Sales that already appear in Service
