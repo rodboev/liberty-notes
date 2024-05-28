@@ -105,6 +105,7 @@ const groupNotes = (notes) => {
   for (const note of notes) {
     if (note['Note Code'] === '911 EMER') {
       categories[getCategoryIndex('911')].notes.push(note.formatted)
+			continue
     }
 
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
