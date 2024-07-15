@@ -2,7 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const converter = require('json-2-csv')
 const express = require('express')
-const fileUpload = require ('express-fileupload')
+const fileUpload = require('express-fileupload')
+const hash = require('object-hash')
 
 const app = express()
 const port = parseInt(process.env.PORT) || 3000
@@ -29,7 +30,11 @@ app.get('/api/notes.json', (req, res) => {
     if (err) throw err
 
     data = data.replaceAll("\r", "");
-    data = await converter.csv2jsonAsync(data, {keys: ['Company', 'Location Code', 'Location ID', 'Note Code', 'Note', 'Added By']})
+    data = await converter.csv2jsonAsync(data, {keys: ['Note Date', 'Note Time', 'Company', 'Location Code', 'Location ID', 'Note Code', 'Note', 'Added By']})
+		data = data.map(note => ({
+			...note,
+			fingerprint: hash(note),
+		}))
     data = JSON.stringify(data, null, 2)
 
     res.send(data)
