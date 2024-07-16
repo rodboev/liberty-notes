@@ -23,12 +23,12 @@ Warm regards,<br />
 Service Department
 Liberty Pest Control
 (718) 837-9030",
-			"fingerprint": "7b95a89707f0642851cbcbc0523bf70d31e4d028"
+			"fingerprint": ""
 		}
 	]
 }
 
-You can vary from this template as needed, but make sure to include the key points. Keep "Someone in our service department will be following up as well" as-is. Only include bullet points if only one item is listed. Return JSON. Ignore newlines in the body.`,
+You can vary from this template as needed, but make sure to include the key points. Keep "Someone in our service department will be following up as well" as-is. Only include bullet points if only one item is listed. Return JSON. Ignore newlines in the body. Take the fingerprint from the input.`,
 	user: `Write one email for each of these notes: `
 }
 

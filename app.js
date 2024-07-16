@@ -45,7 +45,7 @@ async function requestEmails({ user, system }) {
 
 		const emails = JSON.parse(response.choices[0].message.content).emails
 		const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
-		console.log(`> [${timestamp()}] Received ${emails.length} emails (${kb(JSON.stringify(response).length)}). Tokens: ${formatUsage(response.usage)}, in ${(endTime - startTime) / 1000} seconds`)
+		console.log(`> [${timestamp()}] Received ${emails.length} emails (${kb(JSON.stringify(response).length)}) in ${(endTime - startTime) / 1000} secs. Tokens: ${formatUsage(response.usage)}`)
 
 		return emails
 	}
@@ -95,7 +95,7 @@ app.post('/api/upload', async function(req, res) {
 			note: notes.find(note => note.fingerprint === email.fingerprint)
 		}))
 
-		const mergedEmails = merge(emails, notes)
+		const mergedEmails = merge(emails, filteredNotes)
 		await fs.promises.writeFile('data/emails.json', JSON.stringify(mergedEmails, null, 2))
 		console.log(`> [${timestamp()}] Saved: data/emails.json (${mergedEmails.length} emails)`)
 		res.end('Emails saved.')
