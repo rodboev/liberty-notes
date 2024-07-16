@@ -4,8 +4,8 @@ const categories = [
   {
     name: '911',
     keywords: [],
-    notes: [],
-    notesShown: []
+    entries: [],
+    entriesShown: []
   },
   {
     name: 'SERVICE',
@@ -20,8 +20,8 @@ const categories = [
       'advice',
       'infestation'
     ],
-    notes: [],
-    notesShown: []
+    entries: [],
+    entriesShown: []
   },
   {
     name: 'KEY',
@@ -33,8 +33,8 @@ const categories = [
       'lockbox',
       'lock box',
     ],
-    notes: [],
-    notesShown: []
+    entries: [],
+    entriesShown: []
   },
   {
     name: 'SALES',
@@ -47,14 +47,14 @@ const categories = [
       'need',
       'needs',
     ],
-    notes: [],
-    notesShown: []
+    entries: [],
+    entriesShown: []
   },
   {
     name: 'UNCATEGORIZED',
     keywords: [],
-    notes: [],
-    notesShown: []
+    entries: [],
+    entriesShown: []
   }
 ]
 
@@ -67,7 +67,7 @@ const getCategoryIndex = (name) => {
   return -1;
 }
 
-const formatNotes = (notes) => {
+const format = (notes) => {
   const formattedNotes = []
   const url = "https://app.pestpac.com/location/detail.asp?LocationID="
 
@@ -81,7 +81,7 @@ const formatNotes = (notes) => {
           `<h5>Name:</h5><a href="${url}${note['Location ID']}" target="_new">${note['Company']}</a>
           <a class="code" href="${url}${note['Location ID']}" target="_new">[${note['Location Code']}]</a><br />
           <h5>Code:</h5>${note['Note Code']}<br />
-          <h5>Note:</h5><span class="note">${note['Note']
+          <h5>Note:</h5><span class="content">${note['Note']
             .replace(/^Service: /, "")
             .replace(/\s{2,}/g, "<br />")}
           </span><br />
@@ -99,33 +99,31 @@ const formatNotes = (notes) => {
   return formattedNotes
 }
 
-const groupNotes = (notes) => {
-  const keywords = categories.flatMap(c => c.keywords)
+const group = (merged) => {
+  const keywords = categories.flatMap(category => category.keywords)
   
-  for (const note of notes) {
-    if (note['Note Code'] === '911 EMER') {
-      categories[getCategoryIndex('911')].notes.push(note.formatted)
+  for (const { note, email = null } of merged) {
+		if (note['Note Code'] === '911 EMER') {
+      categories[getCategoryIndex('911')].entries.push({ note: note.formatted, email })
 			continue
     }
 
     const pattern = new RegExp(keywords.join('\\b|\\b'), 'gi')
     const highlightedNote = note.formatted.replace(pattern, match => `<span class='highlight'>${match}</span>`) 
     if (!note.formatted.indexOf(highlightedNote)) {
-      categories[getCategoryIndex('UNCATEGORIZED')].notes.push(note.formatted)
+      categories[getCategoryIndex('UNCATEGORIZED')].entries.push({ note: note.formatted, email })
     }
 
     for (const category of categories) {
       for (const keyword of category.keywords) {
         const pattern = new RegExp('\\b' + keyword + '\\b', 'gi')
         if (pattern.test(highlightedNote)) {
-          category.notes.push(highlightedNote)
+          category.entries.push({ note: highlightedNote })
           break
         }
       }
     }
   }
-  
-  return notes
 }
 
 const fetchNotes = async (url) => {
@@ -134,40 +132,79 @@ const fetchNotes = async (url) => {
   return notes
 }
 
-const renderCategories = (notes) => {
+const render = () => {
   let rendered = ''
   for (const category of categories) {
     rendered += `<section>`
     rendered += `<h4>${category.name}</h4>`
-    rendered += `<div class="details-${category.name.toLocaleLowerCase()}">`
-    // Take out notes in Sales that already appear in Service
+    rendered += `<div class="details-${category.name.toLocaleLowerCase()} entries">`
     if (category.name !== 'SALES') {
-      for (let [i, note] of category.notes.entries()) {
-        rendered += `<ul><span class="num">${i + 1}.</span>${note}</ul>`
-      }
+			category.entries.forEach(({ note, email = null }, index) => {
+        rendered += `
+					<div class="entry">
+						<div class="note">
+							<span class="num">${index + 1}.</span>${note}
+						</div>`
+				if (email) {
+					rendered += `<div class="email">`
+					if (!email.hasOwnProperty('error')) {
+						rendered += `
+							<input class="subject" value="${email.subject}"></input>
+							<div class="body">${email.body}</div>`
+					} else {
+						rendered += `<div class="error">${email.error}</div>`
+					}
+					rendered += `</div>` // .email
+				}
+				rendered += `</div>` // .entry
+      })
     }
     else {
+			// Ignore notes in Sales that already appear in Service
     }
   rendered += `</div></section>`
   } 
   return rendered
 }
 
-const refreshNotes = async () => {
+const refresh = async () => {
   for (const category of categories) {
-    category.notes.length = 0
-    category.notesShown.length = 0
+    category.entries.length = 0
+    category.entries.length = 0
   }
-  
-	const url = '/api/notes'
-	const notes = await fetchNotes(url)
+
+	// Fetch notes and emails
+	const [emailsResponse, notesResponse] = await Promise.all([
+		fetch('/api/emails'),
+		fetch('/api/notes')
+	])
+	const emails = await emailsResponse.json()
+	const notes = await notesResponse.json()
+
 	if (notes.hasOwnProperty('errno')) {
-		console.error(`Error ${notes.errno}: Can't fetch ${url}:`, notes)
-	} else {
-		const content = document.querySelector('.content')
-		const pipeline = (...fns) => fns.reduce((f, g) => (...args) => g(f(...args)))
-		content.innerHTML = pipeline(formatNotes, groupNotes, renderCategories)(notes)
+		throw new Error(
+			`Error ${notes.errno}: Can't fetch /api/notes
+			Response: ${notes}`
+		)
 	}
+
+	// Format notes and merge with emails
+	const merge = ({ notes, emails }) => notes.map(note => ({
+		note,
+		email: emails.find(email => email.fingerprint === note.fingerprint),
+	}))
+	const merged = merge({ emails, notes: format(notes) })
+
+	group(merged)
+
+	const content = document.querySelector('#content')
+	content.innerHTML = render()
+	$('#content .email .body').summernote({
+		toolbar: [
+			['style', ['bold', 'underline', 'italic']],
+			['lists', ['ul', 'ol']]
+		]
+	})
 
   initNav()
 }
@@ -180,7 +217,7 @@ async function saveFile(input) {
   if (ext === 'csv') {
     formData.append("file", file)
     await fetch('/api/upload', {method: "POST", body: formData})
-    refreshNotes()
+    refresh()
   }
   else {
     alert("Please choose a file with a file with a .csv extension.")
@@ -190,7 +227,7 @@ async function saveFile(input) {
 const input = document.querySelector('input[type="file"]')
 input.addEventListener('change', () => saveFile(input))
 
-window.addEventListener('DOMContentLoaded', refreshNotes)
+window.addEventListener('DOMContentLoaded', refresh)
 
 /* ------------------ */
 /* Section navigation */
