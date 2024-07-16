@@ -15,16 +15,32 @@ const app = express()
 const port = parseInt(process.env.PORT) || 3000
 const timestamp = () => new Date().toLocaleTimeString()
 
-async function requestEmails({ user, system }) {
+function chunkArray(array, chunkSize) {
+	const chunks = [];
+	for (let i = 0; i < array.length; i += chunkSize) {
+			chunks.push(array.slice(i, i + chunkSize));
+	}
+	return chunks;
+}
+
+async function requestEmails({ user, system, notes }) {
+	// Build user prompt from base prompt and notes
+	user += JSON.stringify(notes.map(note => ({
+		tech: note['Added By'],
+		company: note['Company'],
+		note: note['Note'],
+		date: note['Note Date'],
+		fingerprint: note.fingerprint
+	})))
+
 	const kb = bytes => Math.round(bytes / 1024 * 10) / 10 + 'kb'
 	try {
-		// Will need to split every 16k tokens (~64kb) for context length max
 		const inputLength = system.length + user.length
 		if (inputLength > 60 * 1024) {
 			throw new Error(`Input too long: ${inputLength} bytes`)
 		}
 		else {
-			console.log(`> [${timestamp()}] Requesting emails with context length ${kb(inputLength)} (${kb(system.length)} system prompt, ${kb(user.length)} question)...`)
+			console.log(`> [${timestamp()}] Requested: ${notes.length} emails with context length ${kb(inputLength)} (${kb(system.length)} system prompt, ${kb(user.length)} question)`)
 		}
 
 		const startTime = Date.now()
@@ -42,10 +58,16 @@ async function requestEmails({ user, system }) {
 			seed: 0,
 		})
 		const endTime = Date.now()
+		const secs = Math.round(((endTime - startTime) / 1000) * 10) + ' secs'
 
-		const emails = JSON.parse(response.choices[0].message.content).emails
+		const emailsResponse = JSON.parse(response.choices[0].message.content)
+		const emails = emailsResponse.hasOwnProperty('emails') ? emailsResponse.emails : emailsResponse
+
 		const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
-		console.log(`> [${timestamp()}] Received ${emails.length} emails (${kb(JSON.stringify(response).length)}) in ${(endTime - startTime) / 1000} secs. Tokens: ${formatUsage(response.usage)}`)
+		console.log(`> [${timestamp()}] Received: ${emails.length} emails (${kb(JSON.stringify(response).length)}) in ${secs}. Used ${(response.usage.total)} tokens`)
+		if (emails.length !== notes.length) {
+			console.error(`> [${timestamp()}] *** WARNING *** Emails length ${emails.length} doesn't match notes length ${notes.length}`)
+		}
 
 		return emails
 	}
@@ -61,10 +83,15 @@ app.use(fileUpload({
 app.post('/api/upload', async function(req, res) {
 	try {
 		if (!req.files || Object.keys(req.files).length === 0) {
-			return res.status(400).send('No files were uploaded.')
+			res.status(400).send('No files were uploaded.')
 			throw new Error('No files were uploaded.')
 		}
 		
+		const files = {
+			notes: 'data/notes.json',
+			emails: 'data/emails.json',
+		}
+
 		// Convert uploaded CSV to JSON
 		const data = req.files.file.data.toString('utf8').replaceAll('\r', '')
 		const jsonData = await converter.csv2jsonAsync(data, {
@@ -75,30 +102,31 @@ app.post('/api/upload', async function(req, res) {
 			...note,
 			fingerprint: hash(note),
 		}))
-		await fs.promises.writeFile('data/notes.json', JSON.stringify(notes, null, 2))
-		console.log(`> [${timestamp()}] Saved: data/notes.json (${notes.length} notes)`)
-		res.write('Notes saved.')
+		await fs.promises.writeFile(files.notes, JSON.stringify(notes, null, 2))
+		console.log(`> [${timestamp()}] Saved: ${files.notes} (${notes.length} notes)`)
+		res.write(`${notes.length} notes saved`)
 
-		// Take just 911 notes, create emails, merge with notes, and save
-		const filteredNotes = notes.filter(note => note['Note Code'] === '911 EMER').slice(0, 10)
+		// Take just 911 notes, create emails, and save
+		const filteredNotes = notes.filter(note => note['Note Code'] === '911 EMER')
+		const noteChunks = chunkArray(filteredNotes, 15)
 
-		const emails = await requestEmails({
-			system: prompts.system,
-			user: prompts.user + JSON.stringify(filteredNotes)
+		// Start all requests concurrently and process emails as they come in
+		let allEmails = []
+		const emailPromises = noteChunks.map(async chunk => {
+			const emails = await requestEmails({
+				system: prompts.system,
+				user: prompts.user,
+				notes: chunk
+			})
+			allEmails = allEmails.concat(emails)
+			await fs.promises.writeFile(files.emails, JSON.stringify(allEmails, null, 2))
+			console.log(`> [${timestamp()}] Saved: ${files.emails} (${emails.length} emails, ${allEmails.length} total)`)
+			return emails
 		})
-		// const merge = (notes, emails) => notes.map(note => ({
-		// 	email: emails.find(email => email.fingerprint === note.fingerprint),
-		// 	note
-		// }))
-		const merge = (emails, notes) => emails.map(email => ({
-			email,
-			note: notes.find(note => note.fingerprint === email.fingerprint)
-		}))
 
-		const mergedEmails = merge(emails, filteredNotes)
-		await fs.promises.writeFile('data/emails.json', JSON.stringify(mergedEmails, null, 2))
-		console.log(`> [${timestamp()}] Saved: data/emails.json (${mergedEmails.length} emails)`)
-		res.end('Emails saved.')
+		await Promise.all(emailPromises)
+		console.log(`> [${timestamp()}] Saved ${allEmails.length} total emails`)
+		res.end(`${allEmails.length} total emails saved`)
 	}
 	catch (error) {
 		console.error(error)
