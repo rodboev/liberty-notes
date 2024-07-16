@@ -91,7 +91,7 @@ const formatNotes = (notes) => {
       }
     }
     else {
-      alert(`Couldn't find a "Note" column`)
+      console.error(`Couldn't find "Note" key in note (${note.length} bytes):`, note)
       break
     }
   }
@@ -128,8 +128,8 @@ const groupNotes = (notes) => {
   return notes
 }
 
-const fetchNotes = async (json = '/api/notes.json') => {
-  const response = await fetch(json)
+const fetchNotes = async (url) => {
+  const response = await fetch(url)
   const notes = await response.json()
   return notes
 }
@@ -159,10 +159,15 @@ const refreshNotes = async () => {
     category.notesShown.length = 0
   }
   
-  const notes = await fetchNotes()
-  const content = document.querySelector('.content')
-  const pipeline = (...fns) => fns.reduce((f, g) => (...args) => g(f(...args)))
-  content.innerHTML = pipeline(formatNotes, groupNotes, renderCategories)(notes)
+	const url = '/api/notes'
+	const notes = await fetchNotes(url)
+	if (notes.hasOwnProperty('errno')) {
+		console.error(`Error ${notes.errno}: Can't fetch ${url}:`, notes)
+	} else {
+		const content = document.querySelector('.content')
+		const pipeline = (...fns) => fns.reduce((f, g) => (...args) => g(f(...args)))
+		content.innerHTML = pipeline(formatNotes, groupNotes, renderCategories)(notes)
+	}
 
   initNav()
 }

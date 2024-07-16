@@ -18,6 +18,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",
     "formidable": "^2.0.1",
@@ -25,6 +26,7 @@
     "json-2-csv": "^3.17.1",
     "leven": "^4.0.0",
     "object-hash": "^3.0.0",
+    "openai": "^4.52.7",
     "string-similarity": "^4.0.4",
     "to-vfile": "^7.2.3",
     "vfile-reporter-json": "^3.1.0",
