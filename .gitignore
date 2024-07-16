@@ -105,6 +105,3 @@ dist
 
 # Excel data
 *.xlsx
-
-# Temporary data
-data/*.json
