@@ -189,13 +189,16 @@ h5 {
 
 .entry {
 	display: flex;
-	gap: 40px;
+	gap: 50px;
   margin-block-start: 1em;
   margin-block-end: 1em;
   padding-inline-start: 40px;
 }
-.entry > * {
+.entry .note {
 	flex: 1;
+}
+.entry .email {
+	flex: 1.5;
 }
 .note .content {
 	display: block;
