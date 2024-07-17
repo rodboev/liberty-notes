@@ -66,7 +66,7 @@ async function requestEmails({ user, system, notes }) {
 		const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
 		console.log(`> [${timestamp()}] Received: ${emails.length} emails (${kb(JSON.stringify(response).length)}) in ${secs}. Used ${(response.usage.total)} tokens`)
 		if (emails.length !== notes.length) {
-			console.error(`> [${timestamp()}] *** WARNING *** Emails length ${emails.length} doesn't match notes length ${notes.length}`)
+			console.error(`> [${timestamp()}] WARNING: Expected ${emails.length} emails but received ${notes.length}`)
 		}
 
 		return emails
