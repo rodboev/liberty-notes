@@ -64,7 +64,7 @@ async function requestEmails({ user, system, notes }) {
 		const emails = emailsResponse.hasOwnProperty('emails') ? emailsResponse.emails : emailsResponse
 
 		// const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
-		console.log(`> [${timestamp()}] Received: ${emails.length}/${notes.length} emails in ${secs}. Used ${(response.usage.total_tokens)} tokens`)
+		console.log(`> [${timestamp()}] Received: ${emails.length} of ${notes.length} emails in ${secs}. Used ${(response.usage.total_tokens)} tokens`)
 
 		return emails
 	}
