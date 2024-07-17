@@ -21,7 +21,7 @@ a.code {
 	left: -0.2rem;
 	margin-left: 0.5rem;
 }
-a:hover:not('.button') {
+a:hover:not(.button) {
 	color: #006deb;
 }
 
@@ -114,39 +114,46 @@ img.header {
 	margin: 1px 0 -1px;
 }
 
-nav {
-	position: sticky;
-	bottom: 50px;
-	right: 50px;	
-	--button-radius: 5px;
-	display: flex;
-	justify-content: flex-end;
+@media (max-width: 480px) {
+	nav {
+		display: none;
+	}
 }
-nav button {
-	font-family: inherit;
-	font-size: 10.5pt;
-	text-transform: uppercase;
-	background: #eee;
-	border: 1px solid #ccc;
-	border-radius: var(--button-radius);
-	padding: 10px 13px 9px 12px;
-	cursor: pointer;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 250ms ease-in;
-}
-nav button symbol { 
-	color: #333;
-	margin-right: 3pt;
-	text-shadow: 1px 0 1px #ccc,0 1px 1px #eee,2px 1px 1px #ccc;
-}
-nav .prev {
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
-}
-nav .next {
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
+@media (min-width: 481px) {
+	nav {
+		position: sticky;
+		bottom: 50px;
+		right: 50px;	
+		--button-radius: 5px;
+		display: flex;
+		justify-content: flex-end;
+	}
+	nav button {
+		font-family: inherit;
+		font-size: 10.5pt;
+		text-transform: uppercase;
+		background: #eee;
+		border: 1px solid #ccc;
+		border-radius: var(--button-radius);
+		padding: 10px 13px 9px 12px;
+		cursor: pointer;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 250ms ease-in;
+	}
+	nav button symbol { 
+		color: #333;
+		margin-right: 3pt;
+		text-shadow: 1px 0 1px #ccc,0 1px 1px #eee,2px 1px 1px #ccc;
+	}
+	nav .prev {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+	nav .next {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
 }
 
 h4 {
@@ -189,16 +196,28 @@ h5 {
 
 .entry {
 	display: flex;
-	gap: 50px;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  padding-inline-start: 40px;
 }
-.entry .note {
-	flex: 1;
+@media (max-width: 481px) {
+	.entry {
+		margin-block-start: 1em;
+		margin-block-end: 2em;
+		gap: 1em;
+		flex-direction: column;
+	}
 }
-.entry .email {
-	flex: 1.5;
+@media (min-width: 481px) {
+	.entry {
+		margin-block-start: 1.8em;
+		margin-block-end: 1.8em;
+		gap: 50px;
+		padding-inline-start: 40px;
+	}
+	.entry .note {
+		flex: 1;
+	}
+	.entry .email {
+		flex: 1.5;
+	}
 }
 .note .content {
 	display: block;
@@ -207,9 +226,10 @@ h5 {
 	top: -1.3rem;
 	position: relative;
 	margin-bottom: -2.5rem;
+	overflow: hidden;
 }
 
-input, .table {
+form input, .table {
 	box-shadow: 0 0 0 1px rgb(89 105 128 / 10%), 0 1px 3px 0 rgb(89 105 128 / 10%), 0 1px 2px 0 rgb(0 0 0 / 5%);
 }
 input {
@@ -341,4 +361,12 @@ input:focus {
 
 .email input {
 	width: 100%;
+	padding: 17px 10px;
+	font-size: 12pt;
+}
+.email p:first-of-type {
+	margin-top: 0;
+}
+.email p:last-of-type {
+	margin-bottom: 0;
 }
