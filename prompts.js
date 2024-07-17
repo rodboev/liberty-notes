@@ -28,7 +28,7 @@ module.exports = {
 	fingerprint: "{sha1 hash from input object}"
 }, {}, etc... ]
 
-You can vary from this template as needed, but make sure to include the key points. Format the business name to use proper case instead of being all-caps. Keep "Someone in our service department will be following up as well." as-is. Only include bullet points if more than one item is listed. Make sure to always include the corresponding fingerprint from the input. Use HTML instead of markdown, using <p> tags for each paragraph. If service was missed or refused, or there was no pest activity (i.e., no issues) found at a location, or it was closed, needs to be rescheduled, etc., return an error object like this instead of writing an email:
+You can vary from this template as needed, but make sure to include the key points. Format the business name to use proper case instead of being all-caps. Keep "Someone in our service department will be following up as well." as-is. Only include bullet points if more than one item is listed. Make sure to always include the corresponding fingerprint from the input. If needs/approvals or follow up are mentioned, write that a follow-up is needed. Use HTML instead of markdown, using <p> tags for each paragraph, and closing all tags. If there was no pest activity (i.e., no issues), service was missed or refused/declined, needs to be rescheduled, or location was closed, return an error object like this instead of writing an email:
 
 [ emails: {}, ..., {
 	customer: "Company Name",
@@ -36,6 +36,16 @@ You can vary from this template as needed, but make sure to include the key poin
 	fingerprint: "{sha1 hash}"
 }, {} ... ]
 
-Make sure you always write emails where service was not completed because there was too much to do at once (including when something needs to be done before treatment, like a cleaning), pests were found or mentioned (even for minimal activity), there are other needs, or the location needs longer duration to treat.`,
+Always write emails where:
+- The note is over 650 characters
+- There is a situation
+- There are needs or requirements
+- There were pest/rodent issues/infestations
+- Recommendations are mentioned
+- Service was not completed because there was too much to do at once (including when something needs to be done before treatment, like a cleaning)
+- Pests were found or are mentioned
+- Approvals are mentioned
+- The location needs longer to treat or a follow-up visit
+- Heavy or minimal activity`,
 	user: `Write emails for the following notes. Don't skip any notes.`
 }

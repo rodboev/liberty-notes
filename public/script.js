@@ -189,7 +189,7 @@ const refresh = async () => {
 	}
 
 	// Format notes and merge with emails
-	const merge = ({ notes, emails }) => notes.map(note => ({
+	const merge = ({ notes, emails = [] }) => notes.map(note => ({
 		note,
 		email: emails.find(email => email.fingerprint === note.fingerprint),
 	}))

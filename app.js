@@ -63,11 +63,8 @@ async function requestEmails({ user, system, notes }) {
 		const emailsResponse = JSON.parse(response.choices[0].message.content)
 		const emails = emailsResponse.hasOwnProperty('emails') ? emailsResponse.emails : emailsResponse
 
-		const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
-		console.log(`> [${timestamp()}] Received: ${emails.length} emails (${kb(JSON.stringify(response).length)}) in ${secs}. Used ${(response.usage.total)} tokens`)
-		if (emails.length !== notes.length) {
-			console.error(`> [${timestamp()}] WARNING: Expected ${emails.length} emails but received ${notes.length}`)
-		}
+		// const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
+		console.log(`> [${timestamp()}] Received: ${emails.length}/${notes.length} emails in ${secs}. Used ${(response.usage.total_tokens)} tokens`)
 
 		return emails
 	}
