@@ -126,12 +126,6 @@ const group = (merged) => {
   }
 }
 
-const fetchNotes = async (url) => {
-  const response = await fetch(url)
-  const notes = await response.json()
-  return notes
-}
-
 const render = () => {
   let rendered = ''
   for (const category of categories) {
@@ -174,29 +168,21 @@ const refresh = async () => {
   }
 
 	// Fetch notes and emails
-	const [emailsResponse, notesResponse] = await Promise.all([
-		fetch('/api/emails'),
-		fetch('/api/notes')
+	let [notes, emails] = await Promise.all([
+		fetch('/api/notes').then(response => response.json()),
+		fetch('/api/emails').then(response => response.json()),
 	])
-	const emails = await emailsResponse.json()
-	const notes = await notesResponse.json()
-
-	if (notes.hasOwnProperty('errno')) {
-		throw new Error(
-			`Error ${notes.errno}: Can't fetch /api/notes
-			Response: ${notes}`
-		)
-	}
+	emails = Array.isArray(emails) ? emails : []
 
 	// Format notes and merge with emails
-	const merge = ({ notes, emails = [] }) => notes.map(note => ({
+	const merge = ({ notes, emails }) => notes.map(note => ({
 		note,
 		email: emails.find(email => email.fingerprint === note.fingerprint),
 	}))
 	const merged = merge({ emails, notes: format(notes) })
 
+	// Group into sections and render
 	group(merged)
-
 	const content = document.querySelector('#content')
 	content.innerHTML = render()
 	$('#content .email .body').summernote({

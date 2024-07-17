@@ -4,6 +4,8 @@ const converter = require('json-2-csv')
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const hash = require('object-hash')
+const { Tiktoken } = require('tiktoken/lite')
+const cl100k_base = require('tiktoken/encoders/cl100k_base.json')
 
 const dotenv = require('dotenv')
 dotenv.config()
@@ -23,9 +25,9 @@ function chunkArray(array, chunkSize) {
 	return chunks;
 }
 
-async function requestEmails({ user, system, notes }) {
+async function requestEmails({ prompts, notes, model, encoding }) {
 	// Build user prompt from base prompt and notes
-	user += JSON.stringify(notes.map(note => ({
+	const basePrompt = prompts.user + JSON.stringify(notes.map(note => ({
 		tech: note['Added By'],
 		company: note['Company'],
 		note: note['Note'],
@@ -33,43 +35,44 @@ async function requestEmails({ user, system, notes }) {
 		fingerprint: note.fingerprint
 	})))
 
-	const kb = bytes => Math.round(bytes / 1024 * 10) / 10 + 'kb'
-	try {
-		const inputLength = system.length + user.length
-		if (inputLength > 60 * 1024) {
-			throw new Error(`Input too long: ${inputLength} bytes`)
-		}
-		else {
-			console.log(`> [${timestamp()}] Requested: ${notes.length} emails with context length ${kb(inputLength)} (${kb(system.length)} system prompt, ${kb(user.length)} question)`)
-		}
+	
+	const tokens = encoding.encode(basePrompt + prompts.system).length
+	console.log(`> [${timestamp()}] Requested ${notes.length} emails with context length: ${tokens} tokens`)
 
-		const startTime = Date.now()
-		const response = await openai.chat.completions.create({
-			model: "gpt-3.5-turbo",
-			response_format: { type: "json_object" },
-			messages: [
-				{
-					"role": "system", "content": system,
-				},
-				{
-					"role": "user", "content": user
-				}
-			],
-			seed: 0,
-		})
-		const endTime = Date.now()
-		const secs = Math.round(((endTime - startTime) / 1000) * 10) + ' secs'
+	const startTime = Date.now()
+	const response = await openai.chat.completions.create({
+		model,
+		response_format: { type: "json_object" },
+		messages: [
+			{
+				"role": "system", "content": prompts.system,
+			},
+			{
+				"role": "user", "content": basePrompt
+			}
+		],
+		seed: 0,
+	})
+	const endTime = Date.now()
+	const secs = Math.round(((endTime - startTime) / 1000) * 10) + ' secs'
 
-		const emailsResponse = JSON.parse(response.choices[0].message.content)
-		const emails = emailsResponse.hasOwnProperty('emails') ? emailsResponse.emails : emailsResponse
-
-		// const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
-		console.log(`> [${timestamp()}] Received: ${emails.length} of ${notes.length} emails in ${secs}. Used ${(response.usage.total_tokens)} tokens`)
-
-		return emails
+	// Only return emails when the response finished successfully
+	if (response.choices[0].finish_reason !== 'stop') {
+		console.error(`> [${timestamp()}] Error: Bad response from request with ${tokens}, finish reason: ${response.choices[0].finish_reason}`)
 	}
-	catch (error) {
-		console.error(`Can't create emails: ${error}`)
+	else {
+		try {
+			let emails = JSON.parse(response.choices[0].message.content)
+			emails = (emails.hasOwnProperty('emails') ? emails.emails : (emails ? emails : []))
+
+			// const formatUsage = obj => Object.entries(obj).map(([key, value]) => `${value} ${key.replaceAll('_tokens', '')}`).join(', ')
+			console.log(`> [${timestamp()}] Received: ${emails.length} of ${notes.length} emails in ${secs}. Tokens: ${(response.usage.completion_tokens)}`)
+
+			return emails
+		}
+		catch (error) {
+			console.error(`> [${timestamp()}] Error: Couldn't parse response: ${error}`)
+		}
 	}
 }
 
@@ -105,28 +108,40 @@ app.post('/api/upload', async function(req, res) {
 
 		// Take just 911 notes, create emails, and save
 		const filteredNotes = notes.filter(note => note['Note Code'] === '911 EMER')
-		const noteChunks = chunkArray(filteredNotes, 15)
+		const model = 'gpt-4o'
+		const chunkSize = model === 'gpt-4o' ? 15 : 15
+		const noteChunks = chunkArray(filteredNotes, chunkSize)
 
+		
+		
 		// Start all requests concurrently and process emails as they come in
 		let allEmails = []
-		const emailPromises = noteChunks.map(async chunk => {
+		const encoding = new Tiktoken(
+			cl100k_base.bpe_ranks,
+			cl100k_base.special_tokens,
+			cl100k_base.pat_str
+		)
+
+		const emailPromises = (noteChunks).map(async chunk => {
 			const emails = await requestEmails({
-				system: prompts.system,
-				user: prompts.user,
-				notes: chunk
-			})
+				prompts,
+				notes: chunk,
+				model,
+				encoding
+			}) || []
 			allEmails = allEmails.concat(emails)
 			await fs.promises.writeFile(files.emails, JSON.stringify(allEmails, null, 2))
-			console.log(`> [${timestamp()}] Saved: ${files.emails} (${emails.length} emails, ${allEmails.length} total)`)
+			console.log(`> [${timestamp()}] Saved: ${files.emails} (${emails.length} emails, ${allEmails.length} total so far)`)
 			return emails
 		})
-
 		await Promise.all(emailPromises)
+
+		encoding.free()
 		console.log(`> [${timestamp()}] Saved ${allEmails.length} total emails`)
 		res.end(`${allEmails.length} total emails saved`)
 	}
 	catch (error) {
-		console.error(error)
+		console.error(`> [${timestamp()}] `, error)
 		res.status(500).send(`Something went wrong: ${error}`)
 	}
 })
@@ -135,11 +150,15 @@ app.get(['/api/notes', '/api/emails'], async (req, res) => {
 	try {
 		console.log(`> [${timestamp()}] Request: ${req.url}`)
 		const file = `data${req.url.replace('/api', '')}.json`
-		const data = await fs.promises.readFile(file, 'utf8')
-		res.send(data)
+		try {
+			const data = await fs.promises.readFile(file, 'utf8')
+			res.send(data)
+		} catch (error) {
+			res.status(404).json(`{ message: "Not found: ${req.url}"}`)
+		}
 	}
 	catch (error) {
-		console.error(error)
+		console.error(`> [${timestamp()}] `, error)
 		res.status(500).json(error)
 	}
 })

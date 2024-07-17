@@ -28,6 +28,7 @@
     "object-hash": "^3.0.0",
     "openai": "^4.52.7",
     "string-similarity": "^4.0.4",
+    "tiktoken": "^1.0.15",
     "to-vfile": "^7.2.3",
     "vfile-reporter-json": "^3.1.0",
     "wordsninja": "^1.0.0"
