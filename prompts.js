@@ -36,6 +36,6 @@ You can vary from this template as needed, but make sure to include the key poin
 	fingerprint: "{sha1 hash}"
 }, {} ... ]
 
-Make sure you always write emails where service was not completed because there was too much to do at once, pests were found or mentioned (even for minimal activity), or locations which need longer duration to treat.`,
+Make sure you always write emails where service was not completed because there was too much to do at once (including when something needs to be done before treatment, like a cleaning), pests were found or mentioned (even for minimal activity), or locations which need longer duration to treat.`,
 	user: `Write emails for the following notes. Don't skip any notes.`
 }
