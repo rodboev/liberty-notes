@@ -1,5 +1,7 @@
 'use strict'
 
+const timestamp = () => new Date().toLocaleTimeString()
+
 const categories = [
   {
     name: '911',
@@ -61,10 +63,10 @@ const categories = [
 const getCategoryIndex = (name) => {
   for (let i = 0; i < categories.length; i++) {
     if (categories[i].name === name) {
-      return i;
+      return i
     }
   }
-  return -1;
+  return -1
 }
 
 const format = (notes) => {
@@ -100,8 +102,13 @@ const format = (notes) => {
 }
 
 const group = (merged) => {
-  const keywords = categories.flatMap(category => category.keywords)
-  
+	const keywords = categories.flatMap(category => category.keywords)
+
+	for (const category of categories) {
+		category.entries.length = 0
+		category.entriesShown.length = 0
+	}
+
   for (const { note, email = null } of merged) {
 		if (note['Note Code'] === '911 EMER') {
       categories[getCategoryIndex('911')].entries.push({ note: note.formatted, email })
@@ -157,63 +164,99 @@ const render = () => {
 			// Ignore notes in Sales that already appear in Service
     }
   rendered += `</div></section>`
-  } 
+  }
+
   return rendered
 }
 
-const refresh = async () => {
-  for (const category of categories) {
-    category.entries.length = 0
-    category.entries.length = 0
-  }
 
-	// Fetch notes and emails
-	let [notes, emails] = await Promise.all([
+window.addEventListener('DOMContentLoaded', async function() {
+	const notes = await getNotes()
+	openEmailStream(notes)
+})
+
+let globalNotes, serverEmails
+
+async function getNotes() {
+	// Fetch notes (on load and after upload)
+	[globalNotes, serverEmails] = await Promise.all([
 		fetch('/api/notes').then(response => response.json()),
-		fetch('/api/emails').then(response => response.json()),
+		fetch('/api/emails/static').then(response => response.json())
 	])
-	emails = Array.isArray(emails) ? emails : []
+}
+
+function openEmailStream() {
+	// Open email stream
+	const emailEvents = new EventSource('/api/emails')
+
+	emailEvents.addEventListener('message', event => {
+		const emails = JSON.parse(event.data)
+		// console.log(`> [${timestamp()}] Received data from server`, emails)
+		joinAndRender({ emails, notes: globalNotes })
+	})
+
+	emailEvents.addEventListener('error', event => {
+		console.warn('emailEvents failed:', event);
+		emailEvents.close()
+	})
+}
+
+function joinAndRender({ notes = null, emails} ) {
+	if (emails.length === 0) emails = serverEmails
 
 	// Format notes and merge with emails
-	const merge = ({ notes, emails }) => notes.map(note => ({
+	const leftJoin = ({ notes, emails = [] }) => notes.map(note => ({
 		note,
 		email: emails.find(email => email.fingerprint === note.fingerprint),
 	}))
-	const merged = merge({ emails, notes: format(notes) })
+	const joined = leftJoin({ emails, notes: format(notes) })
 
+	// Sort joined by note['Note Date'] + note['Note Time']
+	joined.sort((a, b) => {
+		const aDate = new Date(`${a.note['Note Date']} ${a.note['Note Time']}`)
+		const bDate = new Date(`${b.note['Note Date']} ${b.note['Note Time']}`)
+		return aDate - bDate
+	})
+	
 	// Group into sections and render
-	group(merged)
+	group(joined)
+
 	const content = document.querySelector('#content')
-	content.innerHTML = render()
-	$('#content .email .body').summernote({
+
+	const offscreenDiv = document.createElement('div')
+	offscreenDiv.style.display = 'none'
+	document.body.appendChild(offscreenDiv)
+	offscreenDiv.innerHTML = `<div id="content">${render()}</div>`
+	$(offscreenDiv).find('.email .body').summernote({
 		toolbar: [
 			['style', ['bold', 'underline', 'italic']],
 			['lists', ['ul', 'ol']]
 		]
 	})
+	morphdom(content, offscreenDiv.innerHTML)
+	document.body.removeChild(offscreenDiv);
 
-  initNav()
+	console.log(`> [${timestamp()}] Updated with ${notes.length} notes and ${emails.length} emails`)
 }
 
-async function saveFile(input) {
-  let formData = new FormData()
-  const file = input.files[0]
-  const ext = file.name.indexOf('.') != -1 &&
-  file.name.substr(file.name.lastIndexOf('.') + 1, file.name.length)
-  if (ext === 'csv') {
-    formData.append("file", file)
-    await fetch('/api/upload', {method: "POST", body: formData})
-    refresh()
-  }
-  else {
-    alert("Please choose a file with a file with a .csv extension.")
-  }
+async function putNotes(input) {
+	let formData = new FormData()
+	const file = input.files[0]
+	const ext = file.name?.indexOf('.') != -1 && file.name.substr(file.name?.lastIndexOf('.') + 1, file.name?.length)
+	if (ext === 'csv') {
+		formData.append("file", file)
+		await fetch('/api/upload', { method: "POST", body: formData })
+	}
+	else {
+		alert("Please choose a file with a file with a .csv extension.")
+	}
 }
 
 const input = document.querySelector('input[type="file"]')
-input.addEventListener('change', () => saveFile(input))
-
-window.addEventListener('DOMContentLoaded', refresh)
+input.addEventListener('change', async function() {
+	await putNotes(input)
+	getNotes()
+})
 
 /* ------------------ */
 /* Section navigation */

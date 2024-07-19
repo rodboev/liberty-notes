@@ -18,10 +18,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "best-effort-json-parser": "^1.1.2",
     "dotenv": "^16.4.5",
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",
     "formidable": "^2.0.1",
+    "http-streaming-request": "^2.2.0",
     "iconv-lite": "^0.6.3",
     "json-2-csv": "^3.17.1",
     "leven": "^4.0.0",
